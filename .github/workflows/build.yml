@@ -1,33 +1,34 @@
 name: Build HwGDBot
 
 on:
-  push:
-    branches: [ main ]
-    tags:
-      - 'v*'
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create'
+        required: true
+      release-title:
+        description: 'Release title'
+        required: true
+      description:
+        description: 'Release description'
+        required: true
 
 jobs:
   build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
       - name: Build with PyInstaller
         run: |
           pyinstaller --onefile --windowed --icon=icon.ico --name=HwGDBot-Windows main.py
-      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -38,27 +39,22 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
       - name: Build with PyInstaller
         run: |
           pyinstaller --onefile --windowed --icon=icon.ico --name=HwGDBot-macOS main.py
-      
       - name: Create DMG
         run: |
           mkdir -p dist/HwGDBot.app/Contents/MacOS
           cp dist/HwGDBot-macOS dist/HwGDBot.app/Contents/MacOS/
           hdiutil create -volname HwGDBot -srcfolder dist/HwGDBot.app -ov -format UDZO dist/HwGDBot-macOS.dmg
-      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -69,26 +65,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libnotify-bin libxcb-xinerama0 libxcb-cursor0
-      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      
       - name: Build with PyInstaller
         run: |
           pyinstaller --onefile --windowed --name=HwGDBot-Linux main.py
-      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -98,14 +89,15 @@ jobs:
   create-release:
     needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
-      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.event.inputs['release-title'] }}
+          body: ${{ github.event.inputs.Description }}
           files: |
             HwGDBot-Windows/HwGDBot-Windows.exe
             HwGDBot-macOS/HwGDBot-macOS.dmg

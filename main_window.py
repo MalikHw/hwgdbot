@@ -6,6 +6,9 @@ from PyQt6.QtGui import QIcon, QPixmap, QAction
 from pathlib import Path
 import json
 import webbrowser
+import zipfile
+import os
+from datetime import datetime
 
 from settings_window import SettingsWindow
 from queue_manager import QueueManager
@@ -34,9 +37,14 @@ class MainWindow(QMainWindow):
         self.youtube_service = None
         self.obs_overlay = None
         
+        # Backup timer
+        self.backup_timer = QTimer()
+        self.backup_timer.timeout.connect(self.perform_auto_backup)
+        
         self.setup_ui()
         self.setup_tray()
         self.load_settings()
+        self.setup_backup_timer()
         self.check_for_updates()
         
         # Connect to chat services
@@ -327,8 +335,56 @@ class MainWindow(QMainWindow):
         dialog = SettingsWindow(self.settings, self.data_dir, self)
         if dialog.exec():
             self.settings = dialog.get_settings()
+            # Update backup timer
+            self.setup_backup_timer()
             # Restart services if needed
             self.connect_services()
+    
+    def setup_backup_timer(self):
+        """Setup automatic backup timer based on settings"""
+        self.backup_timer.stop()
+        
+        if self.settings.get('backup_enable', False):
+            interval_minutes = self.settings.get('backup_interval', 10)
+            interval_ms = interval_minutes * 60 * 1000
+            self.backup_timer.start(interval_ms)
+    
+    def perform_auto_backup(self):
+        """Perform automatic backup"""
+        try:
+            # Get Documents folder path based on OS
+            if os.name == 'nt':  # Windows
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+            else:  # Linux/macOS
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+            
+            backup_dir = docs_path / 'HwGDBot'
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create backup filename with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+            backup_file = backup_dir / f'backup-{timestamp}.hgb-bkp'
+            
+            # Create zip file
+            with zipfile.ZipFile(backup_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                # Add all JSON files from data directory
+                for file in ['queue.json', 'played.json', 'settings.json', 
+                            'blacklist_requesters.json', 'blacklist_creators.json', 
+                            'blacklist_ids.json', 'cache.json']:
+                    file_path = self.data_dir / file
+                    if file_path.exists():
+                        zipf.write(file_path, file)
+            
+            # Keep only last 10 backups
+            backups = sorted(backup_dir.glob('backup-*.hgb-bkp'))
+            if len(backups) > 10:
+                for old_backup in backups[:-10]:
+                    old_backup.unlink()
+            
+            self.status_bar.showMessage(f"Auto-backup saved: {timestamp}", 5000)
+        
+        except Exception as e:
+            print(f"Auto-backup failed: {e}")
     
     def update_status(self, status):
         self.status_bar.showMessage(status)

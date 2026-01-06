@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=HwGDBot
+Exec=HwGDBot-Linux
+Icon=HwGDBot
+Comment=A GD Level requests bot, since Loquibot got fucked
+Categories=Utility;
+Terminal=false

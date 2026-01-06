@@ -29,7 +29,7 @@ jobs:
           pyinstaller --onefile --windowed --icon=icon.ico --name=HwGDBot-Windows main.py
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: HwGDBot-Windows
           path: dist/HwGDBot-Windows.exe
@@ -60,7 +60,7 @@ jobs:
           hdiutil create -volname HwGDBot -srcfolder dist/HwGDBot.app -ov -format UDZO dist/HwGDBot-macOS.dmg
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: HwGDBot-macOS
           path: dist/HwGDBot-macOS.dmg
@@ -99,7 +99,7 @@ jobs:
           mv HwGDBot*.AppImage dist/HwGDBot-Linux.AppImage
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: HwGDBot-Linux
           path: dist/HwGDBot-Linux.AppImage
@@ -110,7 +110,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
       
       - name: Create Release
         uses: softprops/action-gh-release@v1

@@ -89,20 +89,11 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name=HwGDBot-Linux main.py
       
-      - name: Make AppImage
-        run: |
-          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy-x86_64.AppImage
-          mkdir -p AppDir/usr/bin
-          cp dist/HwGDBot-Linux AppDir/usr/bin/
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
-          mv HwGDBot*.AppImage dist/HwGDBot-Linux.AppImage
-      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: HwGDBot-Linux
-          path: dist/HwGDBot-Linux.AppImage
+          path: dist/HwGDBot-Linux
 
   create-release:
     needs: [build-windows, build-macos, build-linux]
@@ -118,6 +109,6 @@ jobs:
           files: |
             HwGDBot-Windows/HwGDBot-Windows.exe
             HwGDBot-macOS/HwGDBot-macOS.dmg
-            HwGDBot-Linux/HwGDBot-Linux.AppImage
+            HwGDBot-Linux/HwGDBot-Linux
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

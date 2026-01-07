@@ -1,9 +1,7 @@
 name: Resize icons to 42x42
 
 on:
-  push:
-    paths:
-      - icons/**
+  workflow_dispatch
 
 jobs:
   resize-icons:
@@ -13,6 +11,7 @@ jobs:
 
       - name: Resize icons in-place
         run: |
+          apt update && apt install imagemagick -y
           shopt -s nullglob
           for img in icons/*; do
             magick "$img" -resize 42x42! "$img"

@@ -386,6 +386,11 @@ class MainWindow(QMainWindow):
             
             # Load difficulty icon
             diff = level.get('difficulty', 'auto').lower()
+            
+            # Special case for unrated levels
+            if level.get('difficultyFace') == 'unrated':
+                diff = 'unrated'
+            
             icon_path = Path(f"icons/{diff}.png")
             if icon_path.exists():
                 item.setIcon(QIcon(str(icon_path)))

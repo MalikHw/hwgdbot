@@ -58,6 +58,7 @@ class GDIntegration:
                 'author': data.get('author', 'Unknown'),
                 'song': self.get_song_info(data),
                 'difficulty': self.get_difficulty(data),
+                'difficultyFace': data.get('difficultyFace', ''),
                 'length': self.get_length(data),
                 'downloads': data.get('downloads', 0),
                 'likes': data.get('likes', 0),

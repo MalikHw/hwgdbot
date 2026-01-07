@@ -18,89 +18,140 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onefile --windowed --icon=icon.ico --name=HwGDBot-Windows main.py
+          pyinstaller --onefile --windowed --icon=icon.ico --name=HwGDBot main.py
+      
+      - name: Create Windows ZIP package
+        run: |
+          mkdir HwGDBot-Windows
+          copy dist\HwGDBot.exe HwGDBot-Windows\
+          copy icon.ico HwGDBot-Windows\
+          mkdir HwGDBot-Windows\icons
+          copy icons\*.png HwGDBot-Windows\icons\
+          powershell Compress-Archive -Path HwGDBot-Windows -DestinationPath HwGDBot-Windows.zip
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: HwGDBot-Windows
-          path: dist/HwGDBot-Windows.exe
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Build with PyInstaller
-        run: |
-          pyinstaller --onefile --windowed --icon=icon.ico --name=HwGDBot-macOS main.py
-      - name: Create DMG
-        run: |
-          mkdir -p dist/HwGDBot.app/Contents/MacOS
-          cp dist/HwGDBot-macOS dist/HwGDBot.app/Contents/MacOS/
-          hdiutil create -volname HwGDBot -srcfolder dist/HwGDBot.app -ov -format UDZO dist/HwGDBot-macOS.dmg
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: HwGDBot-macOS
-          path: dist/HwGDBot-macOS.dmg
+          path: HwGDBot-Windows.zip
 
   build-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - name: Install system dependencies
+      
+      - name: Create Linux package
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libnotify-bin libxcb-xinerama0 libxcb-cursor0
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Build with PyInstaller
-        run: |
-          pyinstaller --onefile --windowed --name=HwGDBot-Linux main.py
+          mkdir -p HwGDBot-Linux/source
+          mkdir -p HwGDBot-Linux/source/icons
+          
+          # Copy Python sources
+          cp *.py HwGDBot-Linux/source/
+          cp requirements.txt HwGDBot-Linux/source/
+          
+          # Copy icons
+          cp icons/*.png HwGDBot-Linux/source/icons/
+          cp icon.png HwGDBot-Linux/
+          
+          # Create config.sh
+          cat > HwGDBot-Linux/config.sh << 'EOF'
+          #!/bin/bash
+          echo "Setting up HwGDBot..."
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r source/requirements.txt
+          echo "Setup complete!"
+          EOF
+          chmod +x HwGDBot-Linux/config.sh
+          
+          # Create hwgdbot.sh
+          cat > HwGDBot-Linux/hwgdbot.sh << 'EOF'
+          #!/bin/bash
+          SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+          cd "$SCRIPT_DIR"
+          
+          # Create desktop entry on first run
+          DESKTOP_FILE="$HOME/.local/share/applications/hwgdbot.desktop"
+          if [ ! -f "$DESKTOP_FILE" ]; then
+              mkdir -p "$HOME/.local/share/applications"
+              cat > "$DESKTOP_FILE" << DESKTOP
+          [Desktop Entry]
+          Name=HwGDBot
+          Comment=Geometry Dash Level Queue Manager
+          Exec=$SCRIPT_DIR/hwgdbot.sh
+          Icon=$SCRIPT_DIR/icon.png
+          Terminal=false
+          Type=Application
+          Categories=Utility;
+          DESKTOP
+              echo "Desktop entry created!"
+          fi
+          
+          # Run with venv
+          source venv/bin/activate
+          cd source
+          python main.py
+          EOF
+          chmod +x HwGDBot-Linux/hwgdbot.sh
+          
+          # Create README
+          cat > HwGDBot-Linux/README.txt << 'EOF'
+          HwGDBot for Linux
+          
+          Installation:
+          1. Run ./config.sh to set up the virtual environment
+          2. Run ./hwgdbot.sh to start the app
+          
+          On first run, a desktop entry will be created automatically.
+          You can then launch HwGDBot from your application menu!
+          
+          Note: Make sure you run from the extracted folder location,
+          as the paths will be saved in the desktop entry.
+          EOF
+          
+          # Create zip
+          zip -r HwGDBot-Linux.zip HwGDBot-Linux
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: HwGDBot-Linux
-          path: dist/HwGDBot-Linux
+          path: HwGDBot-Linux.zip
 
   create-release:
-    needs: [build-windows, build-macos, build-linux]
+    needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.inputs.tag }}
           name: ${{ github.event.inputs['release-title'] }}
-          body: ${{ github.event.inputs.Description }}
+          body: ${{ github.event.inputs.description }}
           files: |
-            HwGDBot-Windows/HwGDBot-Windows.exe
-            HwGDBot-macOS/HwGDBot-macOS.dmg
-            HwGDBot-Linux/HwGDBot-Linux
+            HwGDBot-Windows/HwGDBot-Windows.zip
+            HwGDBot-Linux/HwGDBot-Linux.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

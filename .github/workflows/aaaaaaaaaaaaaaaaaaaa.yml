@@ -1,7 +1,7 @@
 name: Resize icons to 42x42
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   resize-icons:
@@ -9,12 +9,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install ImageMagick
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
       - name: Resize icons in-place
         run: |
-          apt update && apt install imagemagick -y
           shopt -s nullglob
           for img in icons/*; do
-            magick "$img" -resize 42x42! "$img"
+            convert "$img" -resize 42x42! "$img"
           done
 
       - name: Commit resized icons

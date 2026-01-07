@@ -1,0 +1,27 @@
+name: Resize icons to 42x42
+
+on:
+  push:
+    paths:
+      - icons/**
+
+jobs:
+  resize-icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resize icons in-place
+        run: |
+          shopt -s nullglob
+          for img in icons/*; do
+            magick "$img" -resize 42x42! "$img"
+          done
+
+      - name: Commit resized icons
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add icons
+          git diff --cached --quiet || git commit -m "Resize icons to 42x42"
+          git push

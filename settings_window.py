@@ -28,8 +28,14 @@ class SettingsWindow(QDialog):
         # Connection tab
         tabs.addTab(self.create_connection_tab(), "Connection")
         
+        # Commands tab
+        tabs.addTab(self.create_commands_tab(), "Commands")
+        
         # Automod tab
         tabs.addTab(self.create_automod_tab(), "Automod")
+        
+        # Filters tab
+        tabs.addTab(self.create_filters_tab(), "Filters")
         
         # OBS Overlay tab
         tabs.addTab(self.create_obs_tab(), "OBS Overlay")
@@ -49,7 +55,7 @@ class SettingsWindow(QDialog):
         button_layout = QHBoxLayout()
         
         donate_btn = QPushButton("💝 Donate")
-        donate_btn.clicked.connect(lambda: webbrowser.open("https://malikhw.github.io/donate"))
+        donate_btn.clicked.connect(lambda: self.parent().open_donate_page() if hasattr(self.parent(), 'open_donate_page') else webbrowser.open("https://malikhw.github.io/donate"))
         donate_btn.setStyleSheet("QPushButton { background-color: #ff4444; color: white; font-weight: bold; }")
         button_layout.addWidget(donate_btn)
         
@@ -74,9 +80,15 @@ class SettingsWindow(QDialog):
         twitch_group = QGroupBox("Twitch Connection")
         twitch_layout = QVBoxLayout()
         
-        help_label = QLabel("Get your token from: <a href='https://twitchtokengenerator.com'>twitchtokengenerator.com</a>")
+        help_label = QLabel("<b>How to get your Twitch OAuth token:</b><br>"
+                           "1. Visit: <a href='https://twitchtokengenerator.com'>twitchtokengenerator.com</a><br>"
+                           "2. Click 'Generate Token'<br>"
+                           "3. Select scopes: <b>chat:read</b>, <b>chat:edit</b>, <b>channel:moderate</b><br>"
+                           "4. Authorize and copy the token<br>"
+                           "5. Paste below (nothing is sent to me, stored locally only!)")
         help_label.setOpenExternalLinks(True)
         help_label.setWordWrap(True)
+        help_label.setStyleSheet("QLabel { background-color: #f0f0f0; padding: 10px; border-radius: 5px; }")
         twitch_layout.addWidget(help_label)
         
         twitch_layout.addWidget(QLabel("Twitch OAuth Token (nothing will be sent to me):"))
@@ -95,12 +107,130 @@ class SettingsWindow(QDialog):
         youtube_group = QGroupBox("YouTube Connection")
         youtube_layout = QVBoxLayout()
         
-        self.youtube_enable = QCheckBox("Enable YouTube Chat Monitoring")
-        self.youtube_enable.setToolTip("You'll be asked for livestream URL on every app start")
+        self.youtube_enable = QCheckBox("I'm a YouTube streamer")
+        self.youtube_enable.setToolTip("Every time you start the app, you'll be asked for your livestream URL")
         youtube_layout.addWidget(self.youtube_enable)
+        
+        yt_note = QLabel("Note: When enabled, the app will ask for your YouTube livestream URL on every startup. "
+                        "If the URL is invalid, YouTube chat connection will be skipped.")
+        yt_note.setWordWrap(True)
+        yt_note.setStyleSheet("QLabel { color: #666; font-size: 11px; }")
+        youtube_layout.addWidget(yt_note)
         
         youtube_group.setLayout(youtube_layout)
         layout.addWidget(youtube_group)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def create_commands_tab(self):
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        layout.addWidget(QLabel("<b>Chat Commands Configuration</b>"))
+        layout.addWidget(QLabel("Customize the commands users type in chat:"))
+        
+        # Post command
+        post_layout = QHBoxLayout()
+        post_layout.addWidget(QLabel("Submit Level Command:"))
+        self.post_command = QLineEdit()
+        self.post_command.setPlaceholderText("!post")
+        self.post_command.setToolTip("Command for submitting levels (e.g., !post 12345)")
+        post_layout.addWidget(self.post_command)
+        layout.addLayout(post_layout)
+        
+        # Delete command
+        del_layout = QHBoxLayout()
+        del_layout.addWidget(QLabel("Delete Level Command:"))
+        self.del_command = QLineEdit()
+        self.del_command.setPlaceholderText("!del")
+        self.del_command.setToolTip("Command for deleting your last submitted level")
+        del_layout.addWidget(self.del_command)
+        layout.addLayout(del_layout)
+        
+        note = QLabel("Note: Users can delete their most recent submission using the delete command.\n"
+                     "Example: User types '!post 123' then '!del' to remove it.")
+        note.setWordWrap(True)
+        note.setStyleSheet("QLabel { color: #666; font-size: 11px; padding: 10px; }")
+        layout.addWidget(note)
+        
+        layout.addWidget(QLabel("---"))
+        
+        # Max IDs per user
+        max_layout = QHBoxLayout()
+        max_layout.addWidget(QLabel("Max levels per user per stream:"))
+        self.max_ids_spinner = QSpinBox()
+        self.max_ids_spinner.setRange(0, 100)
+        self.max_ids_spinner.setValue(0)
+        self.max_ids_spinner.setSpecialValueText("Unlimited")
+        self.max_ids_spinner.setToolTip("0 = unlimited, 1 = one level per user, etc.\nResets when queue is cleared or app restarts")
+        max_layout.addWidget(self.max_ids_spinner)
+        max_layout.addStretch()
+        layout.addLayout(max_layout)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def create_filters_tab(self):
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        layout.addWidget(QLabel("<b>Level Filters</b>"))
+        layout.addWidget(QLabel("Only accept levels matching these criteria:"))
+        
+        # Length filter
+        length_group = QGroupBox("Length")
+        length_layout = QVBoxLayout()
+        
+        self.filter_lengths = {}
+        for length in ['tiny', 'short', 'medium', 'long', 'xl']:
+            cb = QCheckBox(length.capitalize())
+            cb.setChecked(True)
+            self.filter_lengths[length] = cb
+            length_layout.addWidget(cb)
+        
+        length_group.setLayout(length_layout)
+        layout.addWidget(length_group)
+        
+        # Difficulty filter
+        diff_group = QGroupBox("Difficulty")
+        diff_layout = QVBoxLayout()
+        
+        self.filter_difficulties = {}
+        difficulties = ['auto', 'easy', 'normal', 'hard', 'harder', 'insane', 
+                       'demon-easy', 'demon-medium', 'demon-hard', 'demon-insane', 'demon-extreme']
+        
+        for diff in difficulties:
+            cb = QCheckBox(diff.replace('-', ' ').title())
+            cb.setChecked(True)
+            self.filter_difficulties[diff] = cb
+            diff_layout.addWidget(cb)
+        
+        diff_group.setLayout(diff_layout)
+        layout.addWidget(diff_group)
+        
+        # Other filters
+        other_group = QGroupBox("Other Filters")
+        other_layout = QVBoxLayout()
+        
+        self.filter_disliked = QCheckBox("Block disliked levels")
+        other_layout.addWidget(self.filter_disliked)
+        
+        rated_layout = QHBoxLayout()
+        rated_layout.addWidget(QLabel("Rated Status:"))
+        self.rated_filter = QComboBox()
+        self.rated_filter.addItems(["Any", "Rated Only", "Unrated Only"])
+        rated_layout.addWidget(self.rated_filter)
+        rated_layout.addStretch()
+        other_layout.addLayout(rated_layout)
+        
+        self.filter_large = QCheckBox("Block large levels (40k+ objects)")
+        other_layout.addWidget(self.filter_large)
+        
+        other_group.setLayout(other_layout)
+        layout.addWidget(other_group)
         
         layout.addStretch()
         widget.setLayout(layout)
@@ -383,6 +513,35 @@ class SettingsWindow(QDialog):
         self.twitch_channel_input.setText(self.settings.get('twitch_channel', ''))
         self.youtube_enable.setChecked(self.settings.get('enable_youtube', False))
         
+        # Commands
+        self.post_command.setText(self.settings.get('post_command', '!post'))
+        self.del_command.setText(self.settings.get('del_command', '!del'))
+        self.max_ids_spinner.setValue(self.settings.get('max_ids_per_user', 0))
+        
+        # Filters
+        filters = self.settings.get('level_filters', {})
+        
+        allowed_lengths = filters.get('lengths', ['tiny', 'short', 'medium', 'long', 'xl'])
+        for length, cb in self.filter_lengths.items():
+            cb.setChecked(length in allowed_lengths)
+        
+        allowed_diffs = filters.get('difficulties', ['auto', 'easy', 'normal', 'hard', 'harder', 'insane', 
+                                                     'demon-easy', 'demon-medium', 'demon-hard', 'demon-insane', 'demon-extreme'])
+        for diff, cb in self.filter_difficulties.items():
+            cb.setChecked(diff in allowed_diffs)
+        
+        self.filter_disliked.setChecked(filters.get('filter_disliked', False))
+        self.filter_large.setChecked(filters.get('filter_large', False))
+        
+        rated_filter = filters.get('rated_filter', 'any')
+        if rated_filter == 'rated_only':
+            self.rated_filter.setCurrentIndex(1)
+        elif rated_filter == 'unrated_only':
+            self.rated_filter.setCurrentIndex(2)
+        else:
+            self.rated_filter.setCurrentIndex(0)
+        
+        # Automod
         self.automod_cooldown.setChecked(self.settings.get('automod_cooldown', True))
         self.automod_spam.setChecked(self.settings.get('automod_spam', True))
         self.automod_fucked.setChecked(self.settings.get('automod_fucked', True))
@@ -410,6 +569,31 @@ class SettingsWindow(QDialog):
         self.settings['twitch_channel'] = self.twitch_channel_input.text().strip()
         self.settings['enable_youtube'] = self.youtube_enable.isChecked()
         
+        # Commands
+        self.settings['post_command'] = self.post_command.text().strip() or '!post'
+        self.settings['del_command'] = self.del_command.text().strip() or '!del'
+        self.settings['max_ids_per_user'] = self.max_ids_spinner.value()
+        
+        # Filters
+        allowed_lengths = [length for length, cb in self.filter_lengths.items() if cb.isChecked()]
+        allowed_diffs = [diff for diff, cb in self.filter_difficulties.items() if cb.isChecked()]
+        
+        rated_idx = self.rated_filter.currentIndex()
+        rated_filter = 'any'
+        if rated_idx == 1:
+            rated_filter = 'rated_only'
+        elif rated_idx == 2:
+            rated_filter = 'unrated_only'
+        
+        self.settings['level_filters'] = {
+            'lengths': allowed_lengths,
+            'difficulties': allowed_diffs,
+            'filter_disliked': self.filter_disliked.isChecked(),
+            'filter_large': self.filter_large.isChecked(),
+            'rated_filter': rated_filter
+        }
+        
+        # Automod
         self.settings['automod_cooldown'] = self.automod_cooldown.isChecked()
         self.settings['automod_spam'] = self.automod_spam.isChecked()
         self.settings['automod_fucked'] = self.automod_fucked.isChecked()

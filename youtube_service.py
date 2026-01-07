@@ -9,11 +9,14 @@ except ImportError:
 
 class YouTubeService(QThread):
     level_requested = pyqtSignal(str, str, str)  # level_id, requester, platform
+    delete_requested = pyqtSignal(str, str)  # requester, platform
     connection_status = pyqtSignal(str)
     
-    def __init__(self, livestream_url: str):
+    def __init__(self, livestream_url: str, post_cmd: str = '!post', del_cmd: str = '!del'):
         super().__init__()
         self.livestream_url = livestream_url
+        self.post_cmd = post_cmd
+        self.del_cmd = del_cmd
         self.running = False
         self.chat = None
     
@@ -66,12 +69,19 @@ class YouTubeService(QThread):
         return None
     
     def parse_message(self, username: str, message: str):
-        # Check for !post command
-        post_match = re.match(r'!post\s+(\d+)', message, re.IGNORECASE)
+        # Check for post command (configurable)
+        post_pattern = re.escape(self.post_cmd) + r'\s+(\d+)'
+        post_match = re.match(post_pattern, message, re.IGNORECASE)
         
         if post_match:
             level_id = post_match.group(1)
             self.level_requested.emit(level_id, username, 'youtube')
+            return
+        
+        # Check for delete command (configurable)
+        del_pattern = re.escape(self.del_cmd)
+        if re.match(del_pattern, message, re.IGNORECASE):
+            self.delete_requested.emit(username, 'youtube')
     
     def stop(self):
         self.running = False

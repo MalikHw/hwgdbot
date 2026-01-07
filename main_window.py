@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QListWidget, QLabel, QStatusBar, QSystemTrayIcon, 
-                             QMenu, QMessageBox, QListWidgetItem, QTextEdit, QInputDialog)
+                             QMenu, QMessageBox, QListWidgetItem, QTextEdit, QInputDialog, QDialog, QCheckBox)
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QUrl
 from PyQt6.QtGui import QIcon, QPixmap, QAction
 from PyQt6.QtWebEngineWidgets import QWebEngineView
@@ -470,9 +470,53 @@ class MainWindow(QMainWindow):
         item = self.queue_list.currentItem()
         if item:
             level = item.data(Qt.ItemDataRole.UserRole)
-            reason, ok = QInputDialog.getText(self, "Report Level", "Reason for report:")
             
-            if ok and reason:
+            # Create custom dialog
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Report Level")
+            dialog.setModal(True)
+            dialog.resize(400, 250)
+            
+            layout = QVBoxLayout()
+            
+            layout.addWidget(QLabel(f"Report: {level['level_name']} by {level['author']}"))
+            layout.addWidget(QLabel("Reason for report:"))
+            
+            reason_input = QTextEdit()
+            reason_input.setMaximumHeight(100)
+            layout.addWidget(reason_input)
+            
+            # Ban checkbox (only for Twitch)
+            ban_checkbox = None
+            if level.get('platform') == 'twitch':
+                ban_checkbox = QCheckBox(f"Ban {level['requester']} from my Twitch channel")
+                ban_checkbox.setStyleSheet("QCheckBox { color: #ff4444; font-weight: bold; }")
+                layout.addWidget(ban_checkbox)
+            
+            # Buttons
+            btn_layout = QHBoxLayout()
+            submit_btn = QPushButton("Submit Report")
+            cancel_btn = QPushButton("Cancel")
+            
+            btn_layout.addWidget(submit_btn)
+            btn_layout.addWidget(cancel_btn)
+            layout.addLayout(btn_layout)
+            
+            dialog.setLayout(layout)
+            
+            # Connect buttons
+            submit_btn.clicked.connect(dialog.accept)
+            cancel_btn.clicked.connect(dialog.reject)
+            
+            # Show dialog
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                reason = reason_input.toPlainText().strip()
+                
+                if not reason:
+                    QMessageBox.warning(self, "Error", "Please provide a reason for the report!")
+                    return
+                
+                # Submit report
                 import requests
                 try:
                     requests.post("https://hwgdbot.rf.gd/fuckit.php", json={
@@ -482,9 +526,34 @@ class MainWindow(QMainWindow):
                         'reason': reason,
                         'reporter': self.settings.get('twitch_channel', 'unknown')
                     }, timeout=5)
+                    
+                    # Ban user if checkbox was checked
+                    if ban_checkbox and ban_checkbox.isChecked():
+                        self.ban_twitch_user(level['requester'])
+                    
                     self.notification.show_success("Report submitted!")
-                except:
+                    logging.info(f"Reported level {level['level_id']}: {reason}")
+                    
+                except Exception as e:
                     self.notification.show_error("Failed to submit report")
+                    logging.error(f"Report submission failed: {e}")
+    
+    def ban_twitch_user(self, username: str):
+        """Ban a user from Twitch channel"""
+        if not self.twitch_service or not self.twitch_service.sock:
+            self.notification.show_error("Not connected to Twitch")
+            return
+        
+        try:
+            # Send ban command to Twitch IRC
+            ban_cmd = f"PRIVMSG #{self.settings.get('twitch_channel', '')} :/ban {username}\r\n"
+            self.twitch_service.sock.send(ban_cmd.encode('utf-8'))
+            
+            self.notification.show_success(f"Banned {username} from Twitch")
+            logging.info(f"Banned Twitch user: {username}")
+        except Exception as e:
+            self.notification.show_error(f"Failed to ban {username}")
+            logging.error(f"Twitch ban failed: {e}")
     
     def ban_requester(self):
         item = self.queue_list.currentItem()

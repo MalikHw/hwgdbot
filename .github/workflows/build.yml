@@ -38,6 +38,7 @@ jobs:
           mkdir HwGDBot-Windows
           copy dist\HwGDBot.exe HwGDBot-Windows\
           copy icon.ico HwGDBot-Windows\
+          copy icon.png HwGDBot-Windows\
           mkdir HwGDBot-Windows\icons
           copy icons\*.png HwGDBot-Windows\icons\
           powershell Compress-Archive -Path HwGDBot-Windows -DestinationPath HwGDBot-Windows.zip

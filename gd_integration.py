@@ -58,8 +58,12 @@ class GDIntegration:
                 'author': data.get('author', 'Unknown'),
                 'song': self.get_song_info(data),
                 'difficulty': self.get_difficulty(data),
+                'length': self.get_length(data),
                 'downloads': data.get('downloads', 0),
-                'likes': data.get('likes', 0)
+                'likes': data.get('likes', 0),
+                'is_rated': bool(data.get('stars', 0) > 0 or data.get('featured', False)),
+                'is_disliked': data.get('disliked', False),
+                'is_large': data.get('large', False) or data.get('objects', 0) >= 40000
             }
             
             # Cache it
@@ -81,7 +85,18 @@ class GDIntegration:
     
     def get_difficulty(self, data: dict) -> str:
         if data.get('difficulty') == 'Demon':
-            return 'demon'
+            # Check demon difficulty
+            demon_diff = data.get('demonDifficulty', 0)
+            if demon_diff == 3:
+                return 'demon-easy'
+            elif demon_diff == 4:
+                return 'demon-medium'
+            elif demon_diff == 5:
+                return 'demon-insane'
+            elif demon_diff == 6:
+                return 'demon-extreme'
+            else:
+                return 'demon-hard'
         
         diff_face = data.get('difficultyFace', 'auto').lower()
         
@@ -93,15 +108,32 @@ class GDIntegration:
             'hard': 'hard',
             'harder': 'harder',
             'insane': 'insane',
-            'demon': 'demon',
-            'extreme demon': 'demon',
-            'insane demon': 'demon',
-            'medium demon': 'demon',
-            'easy demon': 'demon',
-            'hard demon': 'demon'
+            'demon': 'demon-hard',
+            'extreme demon': 'demon-extreme',
+            'insane demon': 'demon-insane',
+            'medium demon': 'demon-medium',
+            'easy demon': 'demon-easy',
+            'hard demon': 'demon-hard'
         }
         
         return mapping.get(diff_face, 'normal')
+    
+    def get_length(self, data: dict) -> str:
+        length_val = data.get('length', 0)
+        
+        # GD length values
+        if length_val == 0:
+            return 'tiny'
+        elif length_val == 1:
+            return 'short'
+        elif length_val == 2:
+            return 'medium'
+        elif length_val == 3:
+            return 'long'
+        elif length_val == 4:
+            return 'xl'
+        
+        return 'unknown'
     
     def clear_cache(self):
         self.cache = {}

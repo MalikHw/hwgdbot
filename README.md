@@ -1,1 +1,2 @@
-# hwgdbot
+currectly unstable...
+only the 1st release works💀

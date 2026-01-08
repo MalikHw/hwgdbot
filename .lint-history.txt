@@ -1,7 +1,7 @@
 ==================================================
-Lint run: Wed Jan  7 21:09:14 UTC 2026
+Lint run: Thu Jan  8 12:40:44 UTC 2026
 Branch: main
-Commit: 6e547fbbdf44cbc56cfcea8129fbba6c1eacd076
+Commit: 7f6508184b9854fff1032dfa73812e800ffcb519
 ==================================================
 
 ************* Module automod_service
@@ -778,6 +778,7 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==main_window:[598:609]
 ==settings_window:[490:500]
         try:
+            # Get Documents folder path based on OS
             if os.name == 'nt':  # Windows
                 docs_path = Path(os.path.expanduser('~')) / 'Documents'
             else:  # Linux/macOS
@@ -786,7 +787,7 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
             backup_dir = docs_path / 'HwGDBot'
             backup_dir.mkdir(parents=True, exist_ok=True)
 
-            # Open folder in file manager (duplicate-code)
+            # Create backup filename with timestamp (duplicate-code)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==main_window:[598:606]
 ==settings_window:[459:469]
@@ -806,7 +807,9 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
         button_layout.addWidget(cancel_btn)
 
         layout.addLayout(button_layout)
-        self.setLayout(layout) (duplicate-code)
+        self.setLayout(layout)
+
+    def create_connection_tab(self): (duplicate-code)
 
 -----------------------------------
 Your code has been rated at 4.59/10

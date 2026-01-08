@@ -1,7 +1,7 @@
 ==================================================
-Lint run: Thu Jan  8 12:40:44 UTC 2026
+Lint run: Thu Jan  8 12:42:23 UTC 2026
 Branch: main
-Commit: 7f6508184b9854fff1032dfa73812e800ffcb519
+Commit: 2a350bee8b840fe94b87100a20ba125e232a3565
 ==================================================
 
 ************* Module automod_service
@@ -792,13 +792,15 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==main_window:[598:606]
 ==settings_window:[459:469]
         try:
-            # Get Documents folder path based on OS
+            # Get Documents folder
             if os.name == 'nt':  # Windows
                 docs_path = Path(os.path.expanduser('~')) / 'Documents'
             else:  # Linux/macOS
                 docs_path = Path(os.path.expanduser('~')) / 'Documents'
 
-            backup_dir = docs_path / 'HwGDBot' (duplicate-code)
+            backup_dir = docs_path / 'HwGDBot'
+
+            # Open file dialog (duplicate-code)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==settings_window:[67:75]
 ==youtube_dialog:[27:33]

@@ -1,7 +1,7 @@
 ==================================================
-Lint run: Thu Jan  8 12:42:23 UTC 2026
+Lint run: Thu Jan  8 14:38:57 UTC 2026
 Branch: main
-Commit: 2a350bee8b840fe94b87100a20ba125e232a3565
+Commit: f1dbe54bd9594f294c071fc0e34b50634a73ac3e
 ==================================================
 
 ************* Module automod_service
@@ -773,7 +773,8 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
                     file_path = self.data_dir / file
                     if file_path.exists():
                         zipf.write(file_path, file)
- (duplicate-code)
+
+            # Keep only last 10 backups (duplicate-code)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==main_window:[598:609]
 ==settings_window:[490:500]
@@ -792,15 +793,13 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==main_window:[598:606]
 ==settings_window:[459:469]
         try:
-            # Get Documents folder
+            # Get Documents folder path based on OS
             if os.name == 'nt':  # Windows
                 docs_path = Path(os.path.expanduser('~')) / 'Documents'
             else:  # Linux/macOS
                 docs_path = Path(os.path.expanduser('~')) / 'Documents'
 
-            backup_dir = docs_path / 'HwGDBot'
-
-            # Open file dialog (duplicate-code)
+            backup_dir = docs_path / 'HwGDBot' (duplicate-code)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==settings_window:[67:75]
 ==youtube_dialog:[27:33]

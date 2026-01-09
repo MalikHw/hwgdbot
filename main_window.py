@@ -52,7 +52,8 @@ class MainWindow(QMainWindow):
 
         # Connect to chat services
         QTimer.singleShot(500, self.connect_services)
-def setup_ui(self):
+
+    def setup_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QHBoxLayout(central)
@@ -182,7 +183,8 @@ def setup_ui(self):
                 self.settings = json.load(f)
         else:
             self.settings = {}
-def connect_services(self):
+
+    def connect_services(self):
         # Start Twitch service
         twitch_token = self.settings.get('twitch_token')
         twitch_channel = self.settings.get('twitch_channel')
@@ -406,7 +408,8 @@ def connect_services(self):
         info += f"<b>Attempts:</b> {level.get('attempts', 0)}"
 
         self.level_info.setHtml(info)
-def copy_level_id(self):
+
+    def copy_level_id(self):
         item = self.queue_list.currentItem()
         if item:
             level = item.data(Qt.ItemDataRole.UserRole)
@@ -564,7 +567,8 @@ def copy_level_id(self):
             self.setup_backup_timer()
             # Restart services if needed
             self.connect_services()
-def setup_backup_timer(self):
+
+    def setup_backup_timer(self):
         """Setup automatic backup timer based on settings"""
         self.backup_timer.stop()
 

@@ -4,6 +4,15 @@ import platform
 class NotificationService:
     def __init__(self):
         self.os = platform.system()
+        self.toaster = None
+        
+        # Initialize Windows toaster if on Windows
+        if self.os == "Windows":
+            try:
+                from windows_toasts import Toast, WindowsToaster
+                self.toaster = WindowsToaster("HwGDBot")
+            except ImportError:
+                print("windows-toasts not installed, notifications disabled")
     
     def show_success(self, message: str):
         self._show_notification("HwGDBot - Success", message, "info")
@@ -24,12 +33,17 @@ class NotificationService:
     
     def _windows_toast(self, title: str, message: str):
         try:
-            from win10toast import ToastNotifier
-            toaster = ToastNotifier()
-            toaster.show_toast(title, message, duration=3, threaded=True)
-        except ImportError:
-            # Fallback: use system tray
+            if self.toaster:
+                from windows_toasts import Toast
+                toast = Toast()
+                toast.text_fields = [title, message]
+                self.toaster.show_toast(toast)
+            else:
+                # Fallback
+                print(f"[NOTIFICATION] {title}: {message}")
+        except Exception as e:
             print(f"[NOTIFICATION] {title}: {message}")
+            print(f"Toast error: {e}")
     
     def _linux_toast(self, title: str, message: str):
         try:

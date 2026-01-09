@@ -54,7 +54,7 @@ class SettingsWindow(QDialog):
         # Bottom buttons
         button_layout = QHBoxLayout()
         
-        donate_btn = QPushButton("💝 Donate")
+        donate_btn = QPushButton("ðŸ’ Donate")
         donate_btn.clicked.connect(lambda: webbrowser.open("https://malikhw.github.io/donate"))
         donate_btn.setStyleSheet("QPushButton { background-color: #ff4444; color: white; font-weight: bold; }")
         button_layout.addWidget(donate_btn)

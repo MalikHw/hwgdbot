@@ -1,11 +1,9 @@
 ==================================================
-Lint run: Fri Jan  9 14:56:25 UTC 2026
+Lint run: Fri Jan  9 17:36:04 UTC 2026
 Branch: main
-Commit: 7b41e81e81f534bbd8c36a653e308cf2ddc0e3b1
+Commit: 35fd432d2e3449195cd17fb08ffe0867b49ce4c0
 ==================================================
 
-************* Module main_window
-main_window.py:140:26: E0001: Parsing failed: 'unindent does not match any outer indentation level (main_window, line 140)' (syntax-error)
 ************* Module automod_service
 automod_service.py:14:0: C0303: Trailing whitespace (trailing-whitespace)
 automod_service.py:22:0: C0303: Trailing whitespace (trailing-whitespace)
@@ -36,6 +34,7 @@ automod_service.py:133:0: C0303: Trailing whitespace (trailing-whitespace)
 automod_service.py:136:0: C0303: Trailing whitespace (trailing-whitespace)
 automod_service.py:141:0: C0303: Trailing whitespace (trailing-whitespace)
 automod_service.py:146:0: C0303: Trailing whitespace (trailing-whitespace)
+automod_service.py:150:0: C0304: Final newline missing (missing-final-newline)
 automod_service.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 automod_service.py:2:0: E0401: Unable to import 'requests' (import-error)
 automod_service.py:7:0: C0115: Missing class docstring (missing-class-docstring)
@@ -146,7 +145,6 @@ main.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 main.py:6:0: E0401: Unable to import 'PyQt6.QtWidgets' (import-error)
 main.py:7:0: E0401: Unable to import 'PyQt6.QtCore' (import-error)
 main.py:8:0: E0401: Unable to import 'PyQt6.QtGui' (import-error)
-main.py:9:0: E0001: Cannot import 'main_window' due to 'unindent does not match any outer indentation level (main_window, line 140)' (syntax-error)
 main.py:18:0: C0115: Missing class docstring (missing-class-docstring)
 main.py:48:4: C0116: Missing function or method docstring (missing-function-docstring)
 main.py:18:0: R0903: Too few public methods (1/2) (too-few-public-methods)
@@ -163,25 +161,98 @@ main.py:121:12: W1203: Use lazy % formatting in logging functions (logging-fstri
 main.py:138:0: C0116: Missing function or method docstring (missing-function-docstring)
 main.py:173:8: W0702: No exception type(s) specified (bare-except)
 main.py:3:0: W0611: Unused import os (unused-import)
+************* Module main_window
+main_window.py:3:0: C0301: Line too long (110/100) (line-too-long)
+main_window.py:166:0: C0301: Line too long (112/100) (line-too-long)
+main_window.py:299:0: C0301: Line too long (109/100) (line-too-long)
+main_window.py:407:0: C0301: Line too long (101/100) (line-too-long)
+main_window.py:428:0: C0301: Line too long (105/100) (line-too-long)
+main_window.py:443:0: C0301: Line too long (105/100) (line-too-long)
+main_window.py:624:0: C0301: Line too long (111/100) (line-too-long)
+main_window.py:625:0: C0301: Line too long (103/100) (line-too-long)
+main_window.py:627:0: C0304: Final newline missing (missing-final-newline)
+main_window.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+main_window.py:1:0: E0401: Unable to import 'PyQt6.QtWidgets' (import-error)
+main_window.py:4:0: E0401: Unable to import 'PyQt6.QtCore' (import-error)
+main_window.py:5:0: E0401: Unable to import 'PyQt6.QtGui' (import-error)
+main_window.py:24:0: C0115: Missing class docstring (missing-class-docstring)
+main_window.py:24:0: R0902: Too many instance attributes (25/7) (too-many-instance-attributes)
+main_window.py:56:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:56:4: R0915: Too many statements (57/50) (too-many-statements)
+main_window.py:141:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:159:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:163:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:163:4: C0103: Method name "closeEvent" doesn't conform to snake_case naming style (invalid-name)
+main_window.py:168:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:176:8: E0401: Unable to import 'PyQt6.QtWidgets' (import-error)
+main_window.py:176:8: C0415: Import outside toplevel (PyQt6.QtWidgets.QApplication) (import-outside-toplevel)
+main_window.py:179:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:187:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:204:12: C0415: Import outside toplevel (youtube_dialog.YouTubeDialog) (import-outside-toplevel)
+main_window.py:210:20: C0415: Import outside toplevel (re) (import-outside-toplevel)
+main_window.py:234:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+main_window.py:241:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:308:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+main_window.py:310:4: R0911: Too many return statements (7/6) (too-many-return-statements)
+main_window.py:348:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+main_window.py:350:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:397:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:412:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:416:12: E0401: Unable to import 'PyQt6.QtWidgets' (import-error)
+main_window.py:416:12: C0415: Import outside toplevel (PyQt6.QtWidgets.QApplication) (import-outside-toplevel)
+main_window.py:420:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:435:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:452:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:503:16: C0415: Import outside toplevel (requests) (import-outside-toplevel)
+main_window.py:503:16: E0401: Unable to import 'requests' (import-error)
+main_window.py:520:23: W0718: Catching too general exception Exception (broad-exception-caught)
+main_window.py:518:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+main_window.py:522:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+main_window.py:537:15: W0718: Catching too general exception Exception (broad-exception-caught)
+main_window.py:536:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+main_window.py:539:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+main_window.py:541:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:548:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:555:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:562:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:614:15: W0718: Catching too general exception Exception (broad-exception-caught)
+main_window.py:617:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:620:4: C0116: Missing function or method docstring (missing-function-docstring)
+main_window.py:565:12: W0201: Attribute 'settings' defined outside __init__ (attribute-defined-outside-init)
+main_window.py:24:0: R0904: Too many public methods (26/20) (too-many-public-methods)
+main_window.py:6:0: C0411: standard import "pathlib.Path" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon" (wrong-import-order)
+main_window.py:7:0: C0411: standard import "json" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon" (wrong-import-order)
+main_window.py:8:0: C0411: standard import "webbrowser" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon" (wrong-import-order)
+main_window.py:9:0: C0411: standard import "zipfile" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon" (wrong-import-order)
+main_window.py:10:0: C0411: standard import "os" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon" (wrong-import-order)
+main_window.py:11:0: C0411: standard import "logging" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon" (wrong-import-order)
+main_window.py:12:0: C0411: standard import "datetime.datetime" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon" (wrong-import-order)
+main_window.py:1:0: W0611: Unused QInputDialog imported from PyQt6.QtWidgets (unused-import)
 ************* Module notification_service
-notification_service.py:7:0: C0303: Trailing whitespace (trailing-whitespace)
-notification_service.py:10:0: C0303: Trailing whitespace (trailing-whitespace)
-notification_service.py:13:0: C0303: Trailing whitespace (trailing-whitespace)
+notification_service.py:8:0: C0303: Trailing whitespace (trailing-whitespace)
 notification_service.py:16:0: C0303: Trailing whitespace (trailing-whitespace)
-notification_service.py:24:0: C0303: Trailing whitespace (trailing-whitespace)
+notification_service.py:19:0: C0303: Trailing whitespace (trailing-whitespace)
+notification_service.py:22:0: C0303: Trailing whitespace (trailing-whitespace)
+notification_service.py:25:0: C0303: Trailing whitespace (trailing-whitespace)
 notification_service.py:33:0: C0303: Trailing whitespace (trailing-whitespace)
-notification_service.py:40:0: C0303: Trailing whitespace (trailing-whitespace)
+notification_service.py:47:0: C0303: Trailing whitespace (trailing-whitespace)
+notification_service.py:54:0: C0303: Trailing whitespace (trailing-whitespace)
+notification_service.py:61:0: C0304: Final newline missing (missing-final-newline)
 notification_service.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 notification_service.py:4:0: C0115: Missing class docstring (missing-class-docstring)
-notification_service.py:8:4: C0116: Missing function or method docstring (missing-function-docstring)
-notification_service.py:11:4: C0116: Missing function or method docstring (missing-function-docstring)
-notification_service.py:14:4: C0116: Missing function or method docstring (missing-function-docstring)
-notification_service.py:17:59: W0613: Unused argument 'level' (unused-argument)
-notification_service.py:27:12: C0415: Import outside toplevel (win10toast.ToastNotifier) (import-outside-toplevel)
-notification_service.py:38:8: W0702: No exception type(s) specified (bare-except)
-notification_service.py:36:12: C0415: Import outside toplevel (subprocess) (import-outside-toplevel)
-notification_service.py:46:8: W0702: No exception type(s) specified (bare-except)
-notification_service.py:43:12: C0415: Import outside toplevel (subprocess) (import-outside-toplevel)
+notification_service.py:12:16: C0415: Import outside toplevel (windows_toasts.Toast, windows_toasts.WindowsToaster) (import-outside-toplevel)
+notification_service.py:12:16: W0611: Unused Toast imported from windows_toasts (unused-import)
+notification_service.py:17:4: C0116: Missing function or method docstring (missing-function-docstring)
+notification_service.py:20:4: C0116: Missing function or method docstring (missing-function-docstring)
+notification_service.py:23:4: C0116: Missing function or method docstring (missing-function-docstring)
+notification_service.py:26:59: W0613: Unused argument 'level' (unused-argument)
+notification_service.py:44:15: W0718: Catching too general exception Exception (broad-exception-caught)
+notification_service.py:37:16: E0401: Unable to import 'windows_toasts' (import-error)
+notification_service.py:37:16: C0415: Import outside toplevel (windows_toasts.Toast) (import-outside-toplevel)
+notification_service.py:52:8: W0702: No exception type(s) specified (bare-except)
+notification_service.py:50:12: C0415: Import outside toplevel (subprocess) (import-outside-toplevel)
+notification_service.py:60:8: W0702: No exception type(s) specified (bare-except)
+notification_service.py:57:12: C0415: Import outside toplevel (subprocess) (import-outside-toplevel)
 notification_service.py:1:0: W0611: Unused import sys (unused-import)
 ************* Module obs_overlay
 obs_overlay.py:11:0: C0303: Trailing whitespace (trailing-whitespace)
@@ -209,6 +280,41 @@ obs_overlay.py:56:4: C0116: Missing function or method docstring (missing-functi
 obs_overlay.py:6:0: R0903: Too few public methods (1/2) (too-few-public-methods)
 obs_overlay.py:4:0: C0411: standard import "pathlib.Path" should be placed before third party imports "PyQt6.QtWidgets.QWidget", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QFont" (wrong-import-order)
 obs_overlay.py:3:0: W0611: Unused QPalette imported from PyQt6.QtGui (unused-import)
+************* Module obs_web_overlay
+obs_web_overlay.py:8:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:16:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:19:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:22:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:26:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:34:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:42:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:46:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:49:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:54:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:57:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:60:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:64:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:75:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:79:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:82:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:85:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:92:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:102:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:279:0: C0303: Trailing whitespace (trailing-whitespace)
+obs_web_overlay.py:284:0: C0304: Final newline missing (missing-final-newline)
+obs_web_overlay.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+obs_web_overlay.py:2:0: E0401: Unable to import 'PyQt6.QtCore' (import-error)
+obs_web_overlay.py:6:0: C0115: Missing class docstring (missing-class-docstring)
+obs_web_overlay.py:17:4: C0116: Missing function or method docstring (missing-function-docstring)
+obs_web_overlay.py:23:8: C0115: Missing class docstring (missing-class-docstring)
+obs_web_overlay.py:24:34: W0622: Redefining built-in 'format' (redefined-builtin)
+obs_web_overlay.py:27:12: C0116: Missing function or method docstring (missing-function-docstring)
+obs_web_overlay.py:27:12: C0103: Method name "do_GET" doesn't conform to snake_case naming style (invalid-name)
+obs_web_overlay.py:58:15: W0718: Catching too general exception Exception (broad-exception-caught)
+obs_web_overlay.py:73:8: W0702: No exception type(s) specified (bare-except)
+obs_web_overlay.py:280:4: C0116: Missing function or method docstring (missing-function-docstring)
+obs_web_overlay.py:3:0: C0411: standard import "socket" should be placed before third party import "PyQt6.QtCore.QThread" (wrong-import-order)
+obs_web_overlay.py:4:0: C0411: standard import "json" should be placed before third party import "PyQt6.QtCore.QThread" (wrong-import-order)
 ************* Module queue_manager
 queue_manager.py:14:0: C0303: Trailing whitespace (trailing-whitespace)
 queue_manager.py:22:0: C0303: Trailing whitespace (trailing-whitespace)
@@ -393,6 +499,7 @@ settings_window.py:615:0: C0303: Trailing whitespace (trailing-whitespace)
 settings_window.py:618:0: C0303: Trailing whitespace (trailing-whitespace)
 settings_window.py:623:0: C0303: Trailing whitespace (trailing-whitespace)
 settings_window.py:625:0: C0303: Trailing whitespace (trailing-whitespace)
+settings_window.py:627:0: C0304: Final newline missing (missing-final-newline)
 settings_window.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 settings_window.py:1:0: E0401: Unable to import 'PyQt6.QtWidgets' (import-error)
 settings_window.py:4:0: E0401: Unable to import 'PyQt6.QtCore' (import-error)
@@ -547,6 +654,58 @@ youtube_service.py:57:4: C0116: Missing function or method docstring (missing-fu
 youtube_service.py:71:4: C0116: Missing function or method docstring (missing-function-docstring)
 youtube_service.py:86:4: C0116: Missing function or method docstring (missing-function-docstring)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
+==main_window:[581:606]
+==settings_window:[428:452]
+        try:
+            # Get Documents folder path based on OS
+            if os.name == 'nt':  # Windows
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+            else:  # Linux/macOS
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+
+            backup_dir = docs_path / 'HwGDBot'
+            backup_dir.mkdir(parents=True, exist_ok=True)
+
+            # Create backup filename with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+            backup_file = backup_dir / f'backup-{timestamp}.hgb-bkp'
+
+            # Create zip file
+            with zipfile.ZipFile(backup_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                # Add all JSON files from data directory
+                for file in ['queue.json', 'played.json', 'settings.json',
+                            'blacklist_requesters.json', 'blacklist_creators.json',
+                            'blacklist_ids.json', 'cache.json']:
+                    file_path = self.data_dir / file
+                    if file_path.exists():
+                        zipf.write(file_path, file)
+
+            # Keep only last 10 backups (duplicate-code)
+youtube_service.py:1:0: R0801: Similar lines in 2 files
+==main_window:[581:592]
+==settings_window:[490:500]
+        try:
+            if os.name == 'nt':  # Windows
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+            else:  # Linux/macOS
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+
+            backup_dir = docs_path / 'HwGDBot'
+            backup_dir.mkdir(parents=True, exist_ok=True)
+
+            # Open folder in file manager (duplicate-code)
+youtube_service.py:1:0: R0801: Similar lines in 2 files
+==main_window:[581:589]
+==settings_window:[459:469]
+        try:
+            # Get Documents folder path based on OS
+            if os.name == 'nt':  # Windows
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+            else:  # Linux/macOS
+                docs_path = Path(os.path.expanduser('~')) / 'Documents'
+
+            backup_dir = docs_path / 'HwGDBot' (duplicate-code)
+youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==settings_window:[67:75]
 ==youtube_dialog:[27:33]
         cancel_btn = QPushButton("Cancel")
@@ -554,10 +713,8 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
         button_layout.addWidget(cancel_btn)
 
         layout.addLayout(button_layout)
-        self.setLayout(layout)
-
-    def create_connection_tab(self): (duplicate-code)
+        self.setLayout(layout) (duplicate-code)
 
 -----------------------------------
-Your code has been rated at 4.51/10
+Your code has been rated at 5.43/10
 

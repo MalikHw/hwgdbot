@@ -1,7 +1,7 @@
 ==================================================
-Lint run: Fri Jan  9 14:55:49 UTC 2026
+Lint run: Fri Jan  9 14:56:25 UTC 2026
 Branch: main
-Commit: ecf0c8db2b34a3a9870031d8fb566c95c5f62c97
+Commit: 7b41e81e81f534bbd8c36a653e308cf2ddc0e3b1
 ==================================================
 
 ************* Module main_window
@@ -258,7 +258,6 @@ settings_window.py:48:0: C0303: Trailing whitespace (trailing-whitespace)
 settings_window.py:51:0: C0303: Trailing whitespace (trailing-whitespace)
 settings_window.py:53:0: C0303: Trailing whitespace (trailing-whitespace)
 settings_window.py:56:0: C0303: Trailing whitespace (trailing-whitespace)
-settings_window.py:58:0: C0301: Line too long (179/100) (line-too-long)
 settings_window.py:59:0: C0301: Line too long (111/100) (line-too-long)
 settings_window.py:61:0: C0303: Trailing whitespace (trailing-whitespace)
 settings_window.py:63:0: C0303: Trailing whitespace (trailing-whitespace)
@@ -555,8 +554,10 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
         button_layout.addWidget(cancel_btn)
 
         layout.addLayout(button_layout)
-        self.setLayout(layout) (duplicate-code)
+        self.setLayout(layout)
+
+    def create_connection_tab(self): (duplicate-code)
 
 -----------------------------------
-Your code has been rated at 4.50/10
+Your code has been rated at 4.51/10
 

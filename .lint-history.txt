@@ -1,9 +1,11 @@
 ==================================================
-Lint run: Thu Jan  8 14:38:57 UTC 2026
+Lint run: Fri Jan  9 14:55:49 UTC 2026
 Branch: main
-Commit: f1dbe54bd9594f294c071fc0e34b50634a73ac3e
+Commit: ecf0c8db2b34a3a9870031d8fb566c95c5f62c97
 ==================================================
 
+************* Module main_window
+main_window.py:140:26: E0001: Parsing failed: 'unindent does not match any outer indentation level (main_window, line 140)' (syntax-error)
 ************* Module automod_service
 automod_service.py:14:0: C0303: Trailing whitespace (trailing-whitespace)
 automod_service.py:22:0: C0303: Trailing whitespace (trailing-whitespace)
@@ -144,6 +146,7 @@ main.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 main.py:6:0: E0401: Unable to import 'PyQt6.QtWidgets' (import-error)
 main.py:7:0: E0401: Unable to import 'PyQt6.QtCore' (import-error)
 main.py:8:0: E0401: Unable to import 'PyQt6.QtGui' (import-error)
+main.py:9:0: E0001: Cannot import 'main_window' due to 'unindent does not match any outer indentation level (main_window, line 140)' (syntax-error)
 main.py:18:0: C0115: Missing class docstring (missing-class-docstring)
 main.py:48:4: C0116: Missing function or method docstring (missing-function-docstring)
 main.py:18:0: R0903: Too few public methods (1/2) (too-few-public-methods)
@@ -160,209 +163,6 @@ main.py:121:12: W1203: Use lazy % formatting in logging functions (logging-fstri
 main.py:138:0: C0116: Missing function or method docstring (missing-function-docstring)
 main.py:173:8: W0702: No exception type(s) specified (bare-except)
 main.py:3:0: W0611: Unused import os (unused-import)
-************* Module main_window
-main_window.py:1:76: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:2:91: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:3:0: C0301: Line too long (110/100) (line-too-long)
-main_window.py:31:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:39:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:44:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:48:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:54:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:57:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:62:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:65:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:69:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:73:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:75:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:78:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:84:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:87:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:94:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:96:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:100:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:104:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:108:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:112:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:114:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:118:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:122:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:126:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:128:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:132:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:135:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:140:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:142:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:148:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:154:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:160:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:164:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:168:0: C0301: Line too long (112/100) (line-too-long)
-main_window.py:169:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:173:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:179:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:187:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:192:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:196:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:202:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:216:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:222:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:226:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:232:64: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:236:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:241:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:247:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:249:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:255:0: C0301: Line too long (126/100) (line-too-long)
-main_window.py:259:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:264:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:267:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:270:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:275:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:283:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:286:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:290:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:293:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:297:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:302:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:306:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:310:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:317:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:321:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:326:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:329:0: C0301: Line too long (109/100) (line-too-long)
-main_window.py:330:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:336:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:339:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:343:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:348:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:353:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:358:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:365:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:370:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:372:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:379:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:383:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:386:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:389:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:393:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:397:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:400:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:404:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:408:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:411:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:424:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:426:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:429:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:437:0: C0301: Line too long (101/100) (line-too-long)
-main_window.py:439:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:441:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:448:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:457:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:468:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:473:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:479:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:481:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:484:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:488:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:495:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:500:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:504:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:506:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:510:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:514:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:518:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:529:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:533:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:536:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:540:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:546:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:551:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:557:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:564:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:571:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:578:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:587:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:591:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:596:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:605:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:608:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:612:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:616:74: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:622:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:628:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:630:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:633:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:636:0: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:640:66: C0303: Trailing whitespace (trailing-whitespace)
-main_window.py:641:0: C0301: Line too long (111/100) (line-too-long)
-main_window.py:642:0: C0301: Line too long (103/100) (line-too-long)
-main_window.py:1:0: C0114: Missing module docstring (missing-module-docstring)
-main_window.py:1:0: E0401: Unable to import 'PyQt6.QtWidgets' (import-error)
-main_window.py:4:0: E0401: Unable to import 'PyQt6.QtCore' (import-error)
-main_window.py:5:0: E0401: Unable to import 'PyQt6.QtGui' (import-error)
-main_window.py:6:0: E0401: Unable to import 'PyQt6.QtWebEngineWidgets' (import-error)
-main_window.py:7:0: E0401: Unable to import 'PyQt6.QtWebEngineCore' (import-error)
-main_window.py:26:0: C0115: Missing class docstring (missing-class-docstring)
-main_window.py:26:0: R0902: Too many instance attributes (26/7) (too-many-instance-attributes)
-main_window.py:58:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:58:4: R0915: Too many statements (57/50) (too-many-statements)
-main_window.py:143:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:161:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:165:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:165:4: C0103: Method name "closeEvent" doesn't conform to snake_case naming style (invalid-name)
-main_window.py:170:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:178:8: E0602: Undefined variable 'QApplication' (undefined-variable)
-main_window.py:180:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:188:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:205:12: C0415: Import outside toplevel (youtube_dialog.YouTubeDialog) (import-outside-toplevel)
-main_window.py:211:20: C0415: Import outside toplevel (re) (import-outside-toplevel)
-main_window.py:235:24: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-main_window.py:251:8: C0115: Missing class docstring (missing-class-docstring)
-main_window.py:252:12: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:252:12: C0103: Method name "acceptNavigationRequest" doesn't conform to snake_case naming style (invalid-name)
-main_window.py:252:61: W0613: Unused argument 'is_main_frame' (unused-argument)
-main_window.py:251:8: R0903: Too few public methods (1/2) (too-few-public-methods)
-main_window.py:271:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:316:43: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
-main_window.py:338:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-main_window.py:340:4: R0911: Too many return statements (7/6) (too-many-return-statements)
-main_window.py:378:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-main_window.py:380:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:427:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:442:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:446:12: E0602: Undefined variable 'QApplication' (undefined-variable)
-main_window.py:449:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:458:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:469:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:520:16: C0415: Import outside toplevel (requests) (import-outside-toplevel)
-main_window.py:520:16: E0401: Unable to import 'requests' (import-error)
-main_window.py:537:23: W0718: Catching too general exception Exception (broad-exception-caught)
-main_window.py:535:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-main_window.py:539:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-main_window.py:554:15: W0718: Catching too general exception Exception (broad-exception-caught)
-main_window.py:553:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-main_window.py:556:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-main_window.py:558:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:565:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:572:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:579:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:631:15: W0718: Catching too general exception Exception (broad-exception-caught)
-main_window.py:634:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:637:4: C0116: Missing function or method docstring (missing-function-docstring)
-main_window.py:582:12: W0201: Attribute 'settings' defined outside __init__ (attribute-defined-outside-init)
-main_window.py:269:8: W0201: Attribute 'donate_window' defined outside __init__ (attribute-defined-outside-init)
-main_window.py:26:0: R0904: Too many public methods (27/20) (too-many-public-methods)
-main_window.py:8:0: C0411: standard import "pathlib.Path" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon", "PyQt6.QtWebEngineWidgets.QWebEngineView", "PyQt6.QtWebEngineCore.QWebEnginePage" (wrong-import-order)
-main_window.py:9:0: C0411: standard import "json" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon", "PyQt6.QtWebEngineWidgets.QWebEngineView", "PyQt6.QtWebEngineCore.QWebEnginePage" (wrong-import-order)
-main_window.py:10:0: C0411: standard import "webbrowser" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon", "PyQt6.QtWebEngineWidgets.QWebEngineView", "PyQt6.QtWebEngineCore.QWebEnginePage" (wrong-import-order)
-main_window.py:11:0: C0411: standard import "zipfile" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon", "PyQt6.QtWebEngineWidgets.QWebEngineView", "PyQt6.QtWebEngineCore.QWebEnginePage" (wrong-import-order)
-main_window.py:12:0: C0411: standard import "os" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon", "PyQt6.QtWebEngineWidgets.QWebEngineView", "PyQt6.QtWebEngineCore.QWebEnginePage" (wrong-import-order)
-main_window.py:13:0: C0411: standard import "logging" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon", "PyQt6.QtWebEngineWidgets.QWebEngineView", "PyQt6.QtWebEngineCore.QWebEnginePage" (wrong-import-order)
-main_window.py:14:0: C0411: standard import "datetime.datetime" should be placed before third party imports "PyQt6.QtWidgets.QMainWindow", "PyQt6.QtCore.Qt", "PyQt6.QtGui.QIcon", "PyQt6.QtWebEngineWidgets.QWebEngineView", "PyQt6.QtWebEngineCore.QWebEnginePage" (wrong-import-order)
-main_window.py:1:0: W0611: Unused QInputDialog imported from PyQt6.QtWidgets (unused-import)
-main_window.py:4:0: W0611: Unused pyqtSignal imported from PyQt6.QtCore (unused-import)
-main_window.py:5:0: W0611: Unused QPixmap imported from PyQt6.QtGui (unused-import)
 ************* Module notification_service
 notification_service.py:7:0: C0303: Trailing whitespace (trailing-whitespace)
 notification_service.py:10:0: C0303: Trailing whitespace (trailing-whitespace)
@@ -748,59 +548,6 @@ youtube_service.py:57:4: C0116: Missing function or method docstring (missing-fu
 youtube_service.py:71:4: C0116: Missing function or method docstring (missing-function-docstring)
 youtube_service.py:86:4: C0116: Missing function or method docstring (missing-function-docstring)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
-==main_window:[598:623]
-==settings_window:[428:452]
-        try:
-            # Get Documents folder path based on OS
-            if os.name == 'nt':  # Windows
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            else:  # Linux/macOS
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-
-            backup_dir = docs_path / 'HwGDBot'
-            backup_dir.mkdir(parents=True, exist_ok=True)
-
-            # Create backup filename with timestamp
-            timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-            backup_file = backup_dir / f'backup-{timestamp}.hgb-bkp'
-
-            # Create zip file
-            with zipfile.ZipFile(backup_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                # Add all JSON files from data directory
-                for file in ['queue.json', 'played.json', 'settings.json',
-                            'blacklist_requesters.json', 'blacklist_creators.json',
-                            'blacklist_ids.json', 'cache.json']:
-                    file_path = self.data_dir / file
-                    if file_path.exists():
-                        zipf.write(file_path, file)
-
-            # Keep only last 10 backups (duplicate-code)
-youtube_service.py:1:0: R0801: Similar lines in 2 files
-==main_window:[598:609]
-==settings_window:[490:500]
-        try:
-            # Get Documents folder path based on OS
-            if os.name == 'nt':  # Windows
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            else:  # Linux/macOS
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-
-            backup_dir = docs_path / 'HwGDBot'
-            backup_dir.mkdir(parents=True, exist_ok=True)
-
-            # Create backup filename with timestamp (duplicate-code)
-youtube_service.py:1:0: R0801: Similar lines in 2 files
-==main_window:[598:606]
-==settings_window:[459:469]
-        try:
-            # Get Documents folder path based on OS
-            if os.name == 'nt':  # Windows
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            else:  # Linux/macOS
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-
-            backup_dir = docs_path / 'HwGDBot' (duplicate-code)
-youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==settings_window:[67:75]
 ==youtube_dialog:[27:33]
         cancel_btn = QPushButton("Cancel")
@@ -808,10 +555,8 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
         button_layout.addWidget(cancel_btn)
 
         layout.addLayout(button_layout)
-        self.setLayout(layout)
-
-    def create_connection_tab(self): (duplicate-code)
+        self.setLayout(layout) (duplicate-code)
 
 -----------------------------------
-Your code has been rated at 4.59/10
+Your code has been rated at 4.50/10
 

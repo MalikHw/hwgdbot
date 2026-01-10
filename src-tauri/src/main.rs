@@ -205,7 +205,7 @@ fn is_first_run() -> bool {
 
 #[tauri::command]
 async fn check_updates() -> Result<(bool, String), String> {
-    let current_version = "1.0.0";
+    let current_version = "2.0.0";
     let url = "https://raw.githubusercontent.com/MalikHw/HwGDBot-db/main/ver.txt";
     
     log_info!("Checking for updates...");

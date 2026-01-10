@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HwGDBot</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img src="../icons/icon.png" alt="HwGDBot" id="splash-icon">
+    </div>
+
+    <!-- First Run Dialog -->
+    <div id="first-run-dialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog">
+            <div id="first-run-step-1">
+                <h2>⚠️ Important Notice</h2>
+                <p style="font-size: 18px; margin: 20px 0;">Premium Features Require Credit Card</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 30px;">
+                    <button class="btn btn-danger" onclick="showFirstRunStep2()">DENY</button>
+                    <button class="btn btn-danger" onclick="showFirstRunStep2()">DENY</button>
+                </div>
+            </div>
+            <div id="first-run-step-2" style="display: none;">
+                <h2>😄 Just kidding!</h2>
+                <p style="font-size: 18px; margin: 20px 0;">It's totally free!</p>
+                <button class="btn btn-primary" onclick="finishFirstRun()">You scared me 🥀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donation Dialog -->
+    <div id="donation-dialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog">
+            <h2>❤️ Support HwGDBot</h2>
+            <p>HwGDBot is free and open source! If you'd like to support development:</p>
+            <div style="margin: 20px 0;">
+                <button class="btn btn-danger" onclick="openDonation()">Donate</button>
+                <button class="btn" onclick="closeDonation()">Not now</button>
+            </div>
+            <label style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
+                <input type="checkbox" id="dont-show-donation">
+                <span>Don't show again</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Main Window -->
+    <div id="main-window" style="display: none;">
+        <header>
+            <h1>HwGDBot</h1>
+            <div class="header-controls">
+                <label class="accept-toggle">
+                    <input type="checkbox" id="accept-requests" checked>
+                    <span>Accept Requests</span>
+                </label>
+                <button id="settings-btn" class="btn btn-icon" title="Settings">⚙️</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="queue-panel">
+                <div class="queue-header">
+                    <h2>Queue (<span id="queue-count">0</span>)</h2>
+                    <div class="connection-status">
+                        <span id="twitch-status" class="status-indicator">⚪ Twitch</span>
+                        <span id="youtube-status" class="status-indicator">⚪ YouTube</span>
+                    </div>
+                </div>
+                <div id="queue-list" class="queue-list"></div>
+            </div>
+
+            <div class="info-panel">
+                <h3>Level Info</h3>
+                <div id="level-info">
+                    <p class="empty-state">Select a level from the queue</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="copyLevelId()" id="copy-btn" disabled>Copy ID</button>
+                    <button class="btn" onclick="skipLevel()" id="skip-btn" disabled>Skip</button>
+                    <button class="btn btn-success" onclick="markPlayed()" id="played-btn" disabled>Mark Played</button>
+                    <button class="btn btn-warning" onclick="reportLevel()" id="report-btn" disabled>Report</button>
+                    <button class="btn btn-danger" onclick="banRequester()" id="ban-requester-btn" disabled>Ban Requester</button>
+                    <button class="btn btn-danger" onclick="banCreator()" id="ban-creator-btn" disabled>Ban Creator</button>
+                    <button class="btn btn-danger" onclick="banLevelId()" id="ban-id-btn" disabled>Ban ID</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Dialog -->
+    <div id="settings-dialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog settings-dialog">
+            <h2>Settings</h2>
+            <div class="tabs">
+                <button class="tab active" data-tab="connection">Connection</button>
+                <button class="tab" data-tab="commands">Commands</button>
+                <button class="tab" data-tab="automod">Automod</button>
+                <button class="tab" data-tab="filters">Filters</button>
+                <button class="tab" data-tab="overlay">OBS Overlay</button>
+                <button class="tab" data-tab="sounds">Sounds</button>
+                <button class="tab" data-tab="backup">Backup</button>
+                <button class="tab" data-tab="advanced">Advanced</button>
+            </div>
+            <div id="settings-content"></div>
+            <div class="dialog-actions">
+                <button class="btn btn-danger" onclick="openDonation()" style="margin-right: auto;">❤️ Donate</button>
+                <button class="btn" onclick="closeSettings()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Dialog -->
+    <div id="report-dialog" class="dialog-overlay" style="display: none;">
+        <div class="dialog">
+            <h2>Report Level</h2>
+            <div id="report-level-info"></div>
+            <div class="form-group">
+                <label>Reason *</label>
+                <textarea id="report-reason" rows="4" placeholder="Describe why you're reporting this level..."></textarea>
+            </div>
+            <div id="report-ban-option" style="display: none;">
+                <label style="color: #f44336; font-weight: bold;">
+                    <input type="checkbox" id="report-ban-twitch">
+                    <span id="report-ban-text"></span>
+                </label>
+            </div>
+            <div class="dialog-actions">
+                <button class="btn" onclick="closeReportDialog()">Cancel</button>
+                <button class="btn btn-danger" onclick="submitReport()">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tauri-apps/api@1"></script>
+    <script src="settings.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+[package]
+name = "hwgdbot"
+version = "2.0.0"
+description = "Geometry Dash level request bot for streamers"
+authors = ["MalikHw"]
+license = "MPL 2.0"
+repository = "https://github.com/MalikHw/HwGDBot"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.5", features = ["system-tray", "clipboard-all", "shell-open", "dialog-all", "fs-all"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+chrono = "0.4"
+irc = "0.15"
+futures = "0.3"
+arboard = "3.2"
+zip = "0.6"
+dirs = "5.0"
+lazy_static = "1.4"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
+[target.'cfg(target_os = "windows")'.dependencies]
+winapi = { version = "0.3", features = ["winuser"] }

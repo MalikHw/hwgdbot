@@ -29,12 +29,7 @@ jobs:
       
       - name: Create icons directory and placeholder icon
         run: |
-          New-Item -ItemType Directory -Force -Path "src-tauri/icons"
-          $iconPath = "src-tauri/icons/icon.ico"
-          
-          # Create a simple 1x1 pixel ICO file (smallest valid ICO)
-          $iconBytes = [byte[]](0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x30, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00)
-          [System.IO.File]::WriteAllBytes($iconPath, $iconBytes)
+          powershell -ExecutionPolicy Bypass -File scripts/create-placeholder-icons.ps1
         shell: pwsh
       
       - name: Install dependencies
@@ -47,6 +42,15 @@ jobs:
           cd src-tauri
           cargo build --release
       
+      - name: Verify build
+        run: |
+          if (!(Test-Path "src-tauri/target/release/hwgdbot.exe")) {
+            Write-Error "Build failed - exe not found"
+            exit 1
+          }
+          Write-Host "✅ Build successful"
+        shell: pwsh
+      
       - name: Package Windows
         run: |
           mkdir HwGDBot-Windows
@@ -58,7 +62,7 @@ jobs:
           Compress-Archive -Path "HwGDBot-Windows/*" -DestinationPath "HwGDBot-Windows.zip"
       
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: windows-build
           path: HwGDBot-Windows.zip
@@ -79,7 +83,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev \
+          sudo apt-get install -y \
+            libwebkit2gtk-4.0-dev \
             build-essential \
             curl \
             wget \
@@ -87,12 +92,12 @@ jobs:
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev \
-            libsoup-3.0-dev
+            libsoup2.4-dev
       
       - name: Create icons directory
         run: |
-          mkdir -p src-tauri/icons
-          mkdir -p icons
+          chmod +x scripts/create-placeholder-icons.sh
+          bash scripts/create-placeholder-icons.sh
       
       - name: Build Tauri app
         run: |
@@ -110,7 +115,7 @@ jobs:
           tar -czf HwGDBot-Linux.tar.gz HwGDBot-Linux
       
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: linux-build
           path: HwGDBot-Linux.tar.gz

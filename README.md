@@ -1,2 +1,1 @@
-currectly unstable...
-only the 1st release works💀
+# dont use this, IM MAKING IT AGAIN IN RUST

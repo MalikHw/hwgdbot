@@ -10,7 +10,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey.svg)](https://github.com/MalikHw/HwGDBot/releases)
 [![Discord](https://img.shields.io/badge/discord-@malikhw-7289da.svg)](https://discord.gg/5kn2uX5B8x)
 
-[Download](https://malikhw.github.io/HwGDBot) • [Quick Start](QUICKSTART.md) • [Setup Guide](SETUP_GUIDE.md) • [Changelog](CHANGELOG.md)
+[Page](https://malikhw.github.io/HwGDBot)
 
 </div>
 
@@ -275,5 +275,6 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 **Replacing LoquiBot, one stream at a time** 🚀
 
 Made for streamers, by **a** streamer
+
 
 </div>

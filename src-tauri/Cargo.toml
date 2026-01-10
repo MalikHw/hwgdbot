@@ -36,6 +36,3 @@ custom-protocol = ["tauri/custom-protocol"]
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3", features = ["winuser"] }
-
-[target.'cfg(target_os = "linux")'.dependencies]
-webkit2gtk = { version = "0.19", features = ["v2_38"] }

@@ -52,9 +52,7 @@
       "active": true,
       "targets": "all",
       "identifier": "com.malikhw.hwgdbot",
-      "icon": [
-        "icons/icon.png"
-      ]
+      "icon": []
     },
     "security": {
       "csp": null
@@ -71,7 +69,8 @@
       }
     ],
     "systemTray": {
-      "iconPath": "icons/icon.png"
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": false
     }
   }
 }

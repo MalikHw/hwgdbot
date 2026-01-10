@@ -1,0 +1,121 @@
+name: Build and Release HwGDBot
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.0.0)'
+        required: true
+      release-title:
+        description: 'Release title'
+        required: true
+      description:
+        description: 'Release description'
+        required: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install dependencies
+        run: |
+          cd src-tauri
+          cargo fetch
+      
+      - name: Build Tauri app
+        run: |
+          cd src-tauri
+          cargo build --release
+      
+      - name: Package Windows
+        run: |
+          mkdir HwGDBot-Windows
+          Copy-Item -Path "src-tauri/target/release/hwgdbot.exe" -Destination "HwGDBot-Windows/"
+          Copy-Item -Path "src" -Destination "HwGDBot-Windows/src" -Recurse
+          Copy-Item -Path "icons" -Destination "HwGDBot-Windows/icons" -Recurse
+          Copy-Item -Path "python" -Destination "HwGDBot-Windows/python" -Recurse
+          Copy-Item -Path "README.md" -Destination "HwGDBot-Windows/"
+          Compress-Archive -Path "HwGDBot-Windows/*" -DestinationPath "HwGDBot-Windows.zip"
+      
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: HwGDBot-Windows.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+      
+      - name: Build Tauri app
+        run: |
+          cd src-tauri
+          cargo build --release
+      
+      - name: Package Linux
+        run: |
+          mkdir -p HwGDBot-Linux
+          cp src-tauri/target/release/hwgdbot HwGDBot-Linux/
+          cp -r src HwGDBot-Linux/
+          cp -r icons HwGDBot-Linux/
+          cp -r python HwGDBot-Linux/
+          cp README.md HwGDBot-Linux/
+          tar -czf HwGDBot-Linux.tar.gz HwGDBot-Linux
+      
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: HwGDBot-Linux.tar.gz
+
+  create-release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-build
+      
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-build
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.event.inputs.release-title }}
+          body: ${{ github.event.inputs.description }}
+          files: |
+            HwGDBot-Windows.zip
+            HwGDBot-Linux.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g., v1.0.0)'
+        description: 'Release tag (e.g., v2.0.0)'
         required: true
       release-title:
         description: 'Release title'
@@ -27,6 +27,16 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
       
+      - name: Create icons directory and placeholder icon
+        run: |
+          New-Item -ItemType Directory -Force -Path "src-tauri/icons"
+          $iconPath = "src-tauri/icons/icon.ico"
+          
+          # Create a simple 1x1 pixel ICO file (smallest valid ICO)
+          $iconBytes = [byte[]](0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x30, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00)
+          [System.IO.File]::WriteAllBytes($iconPath, $iconBytes)
+        shell: pwsh
+      
       - name: Install dependencies
         run: |
           cd src-tauri
@@ -42,7 +52,7 @@ jobs:
           mkdir HwGDBot-Windows
           Copy-Item -Path "src-tauri/target/release/hwgdbot.exe" -Destination "HwGDBot-Windows/"
           Copy-Item -Path "src" -Destination "HwGDBot-Windows/src" -Recurse
-          Copy-Item -Path "icons" -Destination "HwGDBot-Windows/icons" -Recurse
+          New-Item -ItemType Directory -Force -Path "HwGDBot-Windows/icons"
           Copy-Item -Path "python" -Destination "HwGDBot-Windows/python" -Recurse
           Copy-Item -Path "README.md" -Destination "HwGDBot-Windows/"
           Compress-Archive -Path "HwGDBot-Windows/*" -DestinationPath "HwGDBot-Windows.zip"
@@ -69,7 +79,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
             wget \
@@ -77,8 +87,12 @@ jobs:
             libgtk-3-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev \
-            libwebkit2gtk-4.1-dev \
-            javascriptcoregtk-4.1-dev
+            libsoup-3.0-dev
+      
+      - name: Create icons directory
+        run: |
+          mkdir -p src-tauri/icons
+          mkdir -p icons
       
       - name: Build Tauri app
         run: |
@@ -90,7 +104,7 @@ jobs:
           mkdir -p HwGDBot-Linux
           cp src-tauri/target/release/hwgdbot HwGDBot-Linux/
           cp -r src HwGDBot-Linux/
-          cp -r icons HwGDBot-Linux/
+          mkdir -p HwGDBot-Linux/icons
           cp -r python HwGDBot-Linux/
           cp README.md HwGDBot-Linux/
           tar -czf HwGDBot-Linux.tar.gz HwGDBot-Linux

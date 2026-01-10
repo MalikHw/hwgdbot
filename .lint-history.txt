@@ -1,7 +1,7 @@
 ==================================================
-Lint run: Fri Jan  9 17:36:04 UTC 2026
+Lint run: Sat Jan 10 17:55:29 UTC 2026
 Branch: main
-Commit: 35fd432d2e3449195cd17fb08ffe0867b49ce4c0
+Commit: 2fd045465caa985ce00767b07972768738fcb77a
 ==================================================
 
 ************* Module automod_service
@@ -679,12 +679,12 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
                     file_path = self.data_dir / file
                     if file_path.exists():
                         zipf.write(file_path, file)
-
-            # Keep only last 10 backups (duplicate-code)
+ (duplicate-code)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==main_window:[581:592]
 ==settings_window:[490:500]
         try:
+            # Get Documents folder path based on OS
             if os.name == 'nt':  # Windows
                 docs_path = Path(os.path.expanduser('~')) / 'Documents'
             else:  # Linux/macOS
@@ -693,7 +693,7 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
             backup_dir = docs_path / 'HwGDBot'
             backup_dir.mkdir(parents=True, exist_ok=True)
 
-            # Open folder in file manager (duplicate-code)
+            # Create backup filename with timestamp (duplicate-code)
 youtube_service.py:1:0: R0801: Similar lines in 2 files
 ==main_window:[581:589]
 ==settings_window:[459:469]
@@ -713,7 +713,9 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
         button_layout.addWidget(cancel_btn)
 
         layout.addLayout(button_layout)
-        self.setLayout(layout) (duplicate-code)
+        self.setLayout(layout)
+
+    def create_connection_tab(self): (duplicate-code)
 
 -----------------------------------
 Your code has been rated at 5.43/10

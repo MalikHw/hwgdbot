@@ -27,11 +27,6 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
       
-      - name: Create icons directory and placeholder icon
-        run: |
-          powershell -ExecutionPolicy Bypass -File scripts/create-placeholder-icons.ps1
-        shell: pwsh
-      
       - name: Install dependencies
         run: |
           cd src-tauri
@@ -62,7 +57,7 @@ jobs:
           Compress-Archive -Path "HwGDBot-Windows/*" -DestinationPath "HwGDBot-Windows.zip"
       
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: HwGDBot-Windows.zip
@@ -115,7 +110,7 @@ jobs:
           tar -czf HwGDBot-Linux.tar.gz HwGDBot-Linux
       
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-build
           path: HwGDBot-Linux.tar.gz

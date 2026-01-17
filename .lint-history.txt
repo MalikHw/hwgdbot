@@ -1,7 +1,7 @@
 ==================================================
-Lint run: Sat Jan 17 16:19:30 UTC 2026
+Lint run: Sat Jan 17 16:20:18 UTC 2026
 Branch: main
-Commit: 4f2fad92134258a9df01204c7e6d255ea6f15fe5
+Commit: e3cb68423192bb230b8f554990d2deaf3074acfb
 ==================================================
 
 ************* Module automod_service
@@ -867,17 +867,18 @@ youtube_service.py:1:0: R0801: Similar lines in 2 files
     def __init__(self, settings):
         super().__init__()
         self.settings = settings (duplicate-code)
-youtube_service.py:1:0: R0401: Cyclic import (main -> notification_service) (cyclic-import)
-youtube_service.py:1:0: R0401: Cyclic import (automod_service -> main -> main_window -> settings_window -> queue_manager) (cyclic-import)
+youtube_service.py:1:0: R0401: Cyclic import (main -> main_window -> notification_service) (cyclic-import)
+youtube_service.py:1:0: R0401: Cyclic import (automod_service -> main -> main_window) (cyclic-import)
 youtube_service.py:1:0: R0401: Cyclic import (backup_service -> main -> main_window -> settings_window) (cyclic-import)
 youtube_service.py:1:0: R0401: Cyclic import (gd_integration -> main -> main_window -> settings_window -> queue_manager) (cyclic-import)
-youtube_service.py:1:0: R0401: Cyclic import (main -> main_window -> report_dialog) (cyclic-import)
 youtube_service.py:1:0: R0401: Cyclic import (main -> update_checker) (cyclic-import)
-youtube_service.py:1:0: R0401: Cyclic import (automod_service -> main -> main_window -> obs_overlay -> queue_manager) (cyclic-import)
-youtube_service.py:1:0: R0401: Cyclic import (automod_service -> main -> main_window) (cyclic-import)
+youtube_service.py:1:0: R0401: Cyclic import (main -> notification_service) (cyclic-import)
+youtube_service.py:1:0: R0401: Cyclic import (main -> main_window -> settings_window -> queue_manager) (cyclic-import)
+youtube_service.py:1:0: R0401: Cyclic import (main -> main_window -> obs_overlay -> queue_manager) (cyclic-import)
+youtube_service.py:1:0: R0401: Cyclic import (main -> main_window -> report_dialog) (cyclic-import)
 youtube_service.py:1:0: R0401: Cyclic import (main -> main_window -> twitch_service) (cyclic-import)
 youtube_service.py:1:0: R0401: Cyclic import (main -> main_window -> youtube_service) (cyclic-import)
 
 -----------------------------------
-Your code has been rated at 5.09/10
+Your code has been rated at 5.08/10
 

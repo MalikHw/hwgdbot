@@ -1,233 +1,295 @@
 import sys
-import json
 import os
-import logging
-from pathlib import Path
-from PyQt6.QtWidgets import QApplication, QMessageBox, QCheckBox, QVBoxLayout, QDialog, QPushButton, QLabel, QSplashScreen
+import json
+import traceback
+from datetime import datetime
+from PyQt6.QtWidgets import QApplication, QSplashScreen, QMessageBox, QDialog, QVBoxLayout, QLabel, QPushButton, QCheckBox
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtGui import QPixmap
 from main_window import MainWindow
+from notification_service import NotificationService
+from update_checker import UpdateChecker
 
-# Setup logging
-logging.basicConfig(
-    filename='log.txt',
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+VERSION = "1.0.0"
+DATA_DIR = "data"
+LOG_FILE = "log.txt"
 
-class DonationDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Support HwGDBot")
-        self.setModal(True)
-        self.setFixedSize(400, 200)
-        
-        layout = QVBoxLayout()
-        
-        msg = QLabel("Hey! I've spent a lot of time making HwGDBot free for everyone.\n\n"
-                    "If you find it useful, please consider supporting me!\n"
-                    "Every donation helps keep this project alive. ❤️")
-        msg.setWordWrap(True)
-        msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(msg)
-        
-        self.dont_show = QCheckBox("Don't show this again")
-        layout.addWidget(self.dont_show, alignment=Qt.AlignmentFlag.AlignCenter)
-        
-        donate_btn = QPushButton("💝 Donate Now")
-        donate_btn.clicked.connect(self.open_donate)
-        donate_btn.setStyleSheet("QPushButton { background-color: #ff4444; color: white; font-weight: bold; padding: 10px; }")
-        layout.addWidget(donate_btn)
-        
-        close_btn = QPushButton("Maybe Later")
-        close_btn.clicked.connect(self.accept)
-        layout.addWidget(close_btn)
-        
-        self.setLayout(layout)
-    
-    def open_donate(self):
-        self.accept()
-        self.parent().open_donate_page()
-
-class FirstRunDialog(QDialog):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("HwGDBot - Premium Features")
-        self.setModal(True)
-        self.setFixedSize(500, 300)
-        self.stage = 1
-        
-        self.layout = QVBoxLayout()
-        
-        self.msg = QLabel("⚠️ NOTICE ⚠️\n\n"
-                         "Most features in HwGDBot are PAID and require a license!\n\n"
-                         "Premium features include:\n"
-                         "• Queue management\n"
-                         "• OBS overlay\n"
-                         "• Automod system\n"
-                         "• Cloud backups\n\n"
-                         "Purchase a license to unlock full access.")
-        self.msg.setWordWrap(True)
-        self.msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.msg.setStyleSheet("font-size: 14px;")
-        self.layout.addWidget(self.msg)
-        
-        btn_layout = QVBoxLayout()
-        
-        self.deny1_btn = QPushButton("❌ I can't afford it")
-        self.deny1_btn.clicked.connect(self.show_joke)
-        self.deny1_btn.setStyleSheet("QPushButton { background-color: #666; color: white; padding: 10px; }")
-        btn_layout.addWidget(self.deny1_btn)
-        
-        self.deny2_btn = QPushButton("❌ This is ridiculous")
-        self.deny2_btn.clicked.connect(self.show_joke)
-        self.deny2_btn.setStyleSheet("QPushButton { background-color: #666; color: white; padding: 10px; }")
-        btn_layout.addWidget(self.deny2_btn)
-        
-        self.layout.addLayout(btn_layout)
-        self.setLayout(self.layout)
-    
-    def show_joke(self):
-        self.msg.setText("😂 I'm kidding!\n\n"
-                        "HwGDBot is totally FREE and always will be!\n\n"
-                        "No premium features, no licenses, no Bullshit.\n"
-                        "Just a tool made by a streamer, for streamers.\n\n"
-                        "Enjoy! ❤️")
-        
-        # Remove old buttons
-        self.deny1_btn.setParent(None)
-        self.deny2_btn.setParent(None)
-        
-        # Add new button
-        scared_btn = QPushButton("😨 You scared me! 🥀")
-        scared_btn.clicked.connect(self.accept)
-        scared_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 10px; }")
-        self.layout.addWidget(scared_btn)
-
-def exception_hook(exctype, value, tb):
-    """Global exception handler"""
-    logging.exception("Uncaught exception", exc_info=(exctype, value, tb))
-    
-    # Try to restore queue
+def log(level, message):
+    """Log message to log.txt with timestamp"""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_line = f"[{timestamp}] [{level}] {message}\n"
     try:
-        from pathlib import Path
-        data_dir = Path("data")
-        queue_file = data_dir / "queue.json"
-        
-        if queue_file.exists():
-            import shutil
-            backup_file = data_dir / f"queue_crash_backup_{int(time.time())}.json"
-            shutil.copy(queue_file, backup_file)
-            logging.info(f"Queue backed up to {backup_file}")
-    except:
-        pass
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(log_line)
+    except Exception as e:
+        print(f"Failed to write log: {e}")
+
+def exception_handler(exc_type, exc_value, exc_traceback):
+    """Global exception handler for crash recovery"""
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    
+    error_msg = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    log("CRITICAL", f"Unhandled exception:\n{error_msg}")
+    
+    # Backup queue on crash
+    try:
+        queue_path = os.path.join(DATA_DIR, "queue.json")
+        if os.path.exists(queue_path):
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_path = os.path.join(DATA_DIR, f"queue_crash_backup_{timestamp}.json")
+            with open(queue_path, "r", encoding="utf-8") as src:
+                with open(backup_path, "w", encoding="utf-8") as dst:
+                    dst.write(src.read())
+            log("INFO", f"Created crash backup: {backup_path}")
+    except Exception as e:
+        log("ERROR", f"Failed to create crash backup: {e}")
     
     # Show error dialog
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Icon.Critical)
     msg.setWindowTitle("HwGDBot Crashed")
-    msg.setText("HwGDBot encountered an error and needs to close.")
-    msg.setInformativeText(f"Error: {value}\n\n"
-                          f"A log file (log.txt) has been created.\n"
-                          f"Please report this to 'malikhw' on Discord!")
+    msg.setText("HwGDBot crashed unexpectedly!")
+    msg.setInformativeText(f"Please report log.txt to 'malikhw' on Discord.\n\nError: {exc_value}")
     msg.setStandardButtons(QMessageBox.StandardButton.Ok)
     msg.exec()
+
+class FirstRunDialog(QDialog):
+    """Joke premium dialog on first run"""
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Premium Features Required")
+        self.setFixedSize(400, 200)
+        self.setModal(True)
+        
+        layout = QVBoxLayout()
+        
+        self.label = QLabel("HwGDBot requires a premium subscription to continue.\n\nPlease purchase a license for $99.99/month.")
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setWordWrap(True)
+        layout.addWidget(self.label)
+        
+        self.deny1 = QPushButton("DENY")
+        self.deny1.clicked.connect(self.show_second_deny)
+        layout.addWidget(self.deny1)
+        
+        self.deny2 = QPushButton("DENY")
+        self.deny2.clicked.connect(self.show_joke_reveal)
+        self.deny2.hide()
+        layout.addWidget(self.deny2)
+        
+        self.reveal_label = QLabel("Just kidding! It's totally free!")
+        self.reveal_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.reveal_label.setStyleSheet("font-size: 16px; font-weight: bold; color: green;")
+        self.reveal_label.hide()
+        layout.addWidget(self.reveal_label)
+        
+        self.ok_button = QPushButton("You scared me")
+        self.ok_button.clicked.connect(self.accept)
+        self.ok_button.hide()
+        layout.addWidget(self.ok_button)
+        
+        self.setLayout(layout)
     
-    sys.__excepthook__(exctype, value, tb)
+    def show_second_deny(self):
+        self.deny1.hide()
+        self.deny2.show()
+    
+    def show_joke_reveal(self):
+        self.label.hide()
+        self.deny2.hide()
+        self.reveal_label.show()
+        self.ok_button.show()
+
+class DonationDialog(QDialog):
+    """Donation popup with 'Don't show again' option"""
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Support HwGDBot")
+        self.setFixedSize(400, 200)
+        self.setModal(True)
+        
+        layout = QVBoxLayout()
+        
+        label = QLabel("Hey! If you like HwGDBot, consider supporting the developer.\n\nYour support helps keep this project alive!")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        
+        donate_btn = QPushButton("Donate")
+        donate_btn.setStyleSheet("background-color: #ff4444; color: white; font-weight: bold; padding: 10px;")
+        donate_btn.clicked.connect(self.open_donation_page)
+        layout.addWidget(donate_btn)
+        
+        self.dont_show_cb = QCheckBox("Don't show again")
+        layout.addWidget(self.dont_show_cb)
+        
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.accept)
+        layout.addWidget(close_btn)
+        
+        self.setLayout(layout)
+    
+    def open_donation_page(self):
+        import webbrowser
+        webbrowser.open("https://malikhw.github.io/donate")
+
+def ensure_data_folder():
+    """Create data folder if it doesn't exist"""
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+        log("INFO", "Created data folder")
+
+def load_settings():
+    """Load settings or create default"""
+    settings_path = os.path.join(DATA_DIR, "settings.json")
+    default_settings = {
+        "first_run": True,
+        "show_donation_popup": True,
+        "twitch_token": "",
+        "twitch_username": "",
+        "youtube_enabled": False,
+        "post_command": "!post",
+        "delete_command": "!del",
+        "max_ids_per_user": 0,
+        "per_user_cooldown": True,
+        "block_same_level_same_user": True,
+        "reject_fucked_list": True,
+        "ignore_played": True,
+        "length_filters": {
+            "tiny": True,
+            "short": True,
+            "medium": True,
+            "long": True,
+            "xl": True
+        },
+        "difficulty_filters": {
+            "auto": True,
+            "easy": True,
+            "normal": True,
+            "hard": True,
+            "harder": True,
+            "insane": True,
+            "demon-easy": True,
+            "demon-medium": True,
+            "demon-hard": True,
+            "demon-insane": True,
+            "demon-extreme": True
+        },
+        "block_disliked": False,
+        "rated_filter": "Any",
+        "block_large": False,
+        "save_queue_on_change": True,
+        "load_queue_on_start": True,
+        "obs_overlay_enabled": False,
+        "obs_overlay_window_enabled": False,
+        "obs_overlay_template": "{level} by {author} (ID: {id})",
+        "obs_overlay_font": "",
+        "obs_overlay_width": 800,
+        "obs_overlay_height": 100,
+        "obs_overlay_transparency": 100,
+        "sounds_enabled": False,
+        "sound_new_level": "",
+        "sound_error": "",
+        "backup_enabled": False,
+        "backup_interval": 10,
+        "streamer_name": ""
+    }
+    
+    try:
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                # Merge with defaults to ensure all keys exist
+                for key in default_settings:
+                    if key not in loaded:
+                        loaded[key] = default_settings[key]
+                return loaded
+        else:
+            with open(settings_path, "w", encoding="utf-8") as f:
+                json.dump(default_settings, f, indent=2)
+            log("INFO", "Created default settings.json")
+            return default_settings
+    except Exception as e:
+        log("ERROR", f"Failed to load settings: {e}")
+        return default_settings
+
+def save_settings(settings):
+    """Save settings to file"""
+    settings_path = os.path.join(DATA_DIR, "settings.json")
+    try:
+        with open(settings_path, "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=2)
+        log("INFO", "Settings saved")
+    except Exception as e:
+        log("ERROR", f"Failed to save settings: {e}")
 
 def main():
-    # Set global exception hook
-    sys.excepthook = exception_hook
+    # Set up global exception handler
+    sys.excepthook = exception_handler
     
-    # Create data directory
-    data_dir = Path("data")
-    data_dir.mkdir(exist_ok=True)
+    # Initialize logging
+    log("INFO", f"HwGDBot v{VERSION} starting")
     
-    app = QApplication(sys.argv)
-    app.setApplicationName("HwGDBot")
-    app.setOrganizationName("MalikHw")
-    
-    # Show splash screen
-    icon_path = Path("icon.png")
-    if icon_path.exists():
-        splash_pix = QPixmap(str(icon_path))
-        splash = QSplashScreen(splash_pix, Qt.WindowType.WindowStaysOnTopHint)
-        splash.show()
-        app.processEvents()
-        QTimer.singleShot(1500, splash.close)  # Show for 1.5s
-    
-    # Set icon if available
-    icon_path = Path("icon.ico")
-    if icon_path.exists():
-        app.setWindowIcon(QIcon(str(icon_path)))
-    elif Path("icon.png").exists():
-        app.setWindowIcon(QIcon("icon.png"))
+    # Ensure data folder exists
+    ensure_data_folder()
     
     # Load settings
-    settings_file = data_dir / "settings.json"
-    settings = {}
-    if settings_file.exists():
-        try:
-            with open(settings_file, 'r', encoding='utf-8') as f:
-                settings = json.load(f)
-        except:
-            logging.exception("Failed to load settings")
-            settings = {}
+    settings = load_settings()
     
-    # Check if first run
-    is_first_run = not settings.get('first_run_completed', False)
+    # Create application
+    app = QApplication(sys.argv)
+    app.setApplicationName("HwGDBot")
+    app.setApplicationVersion(VERSION)
     
-    if is_first_run:
-        # Show joke dialog
-        joke_dialog = FirstRunDialog()
-        joke_dialog.exec()
+    # Show splash screen
+    if os.path.exists("icon.png"):
+        splash_pix = QPixmap("icon.png")
+        splash = QSplashScreen(splash_pix)
+        splash.show()
+        app.processEvents()
         
-        settings['first_run_completed'] = True
-    
-    # Show donation popup if not disabled
-    if not settings.get('hide_donation_popup', False):
-        window_temp = MainWindow()  # Temporary for donate method
-        dialog = DonationDialog(window_temp)
-        dialog.exec()
-        
-        if dialog.dont_show.isChecked():
-            settings['hide_donation_popup'] = True
-        
-        # Save settings
-        with open(settings_file, 'w', encoding='utf-8') as f:
-            json.dump(settings, f, indent=2)
-    
-    window = MainWindow()
-    
-    # Animate settings button on first run
-    if is_first_run:
-        QTimer.singleShot(2000, lambda: animate_settings_button(window))
-    
-    window.show()
+        # Keep splash for 1.5 seconds
+        QTimer.singleShot(1500, splash.close)
+        QTimer.singleShot(1500, lambda: show_main_app(app, settings))
+    else:
+        show_main_app(app, settings)
     
     sys.exit(app.exec())
 
-def animate_settings_button(window):
-    """Zoom in/out animation for settings button"""
-    btn = window.btn_settings
-    original_style = btn.styleSheet()
+def show_main_app(app, settings):
+    """Show main application after splash"""
+    # First run dialog
+    if settings.get("first_run", True):
+        first_run = FirstRunDialog()
+        first_run.exec()
+        settings["first_run"] = False
+        save_settings(settings)
+        log("INFO", "First run completed")
     
-    def zoom_in():
-        btn.setStyleSheet(original_style + "QPushButton { font-size: 18px; }")
+    # Donation popup
+    if settings.get("show_donation_popup", True):
+        donation = DonationDialog()
+        donation.exec()
+        if donation.dont_show_cb.isChecked():
+            settings["show_donation_popup"] = False
+            save_settings(settings)
+        log("INFO", "Donation dialog shown")
     
-    def zoom_out():
-        btn.setStyleSheet(original_style + "QPushButton { font-size: 14px; }")
+    # Create and show main window
+    main_window = MainWindow(settings)
+    main_window.show()
     
-    def reset():
-        btn.setStyleSheet(original_style)
+    # Animate settings button on first run (after donation dialog)
+    if settings.get("first_run") is False and settings.get("show_donation_popup", True):
+        QTimer.singleShot(500, main_window.animate_settings_button)
     
-    # Animate 3 times
-    for i in range(3):
-        QTimer.singleShot(i * 600, zoom_in)
-        QTimer.singleShot(i * 600 + 300, zoom_out)
+    # Check for updates
+    update_checker = UpdateChecker(VERSION)
+    update_checker.check_for_updates()
     
-    QTimer.singleShot(1800, reset)
+    log("INFO", "Main window shown")
 
 if __name__ == "__main__":
-    import time
     main()

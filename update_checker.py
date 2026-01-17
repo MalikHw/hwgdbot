@@ -1,41 +1,57 @@
 import requests
+import webbrowser
+from PyQt6.QtWidgets import QMessageBox
+
+VERSION_URL = "https://raw.githubusercontent.com/MalikHw/HwGDBot-db/main/ver.txt"
+DOWNLOAD_URL = "https://malikhw.github.io/HwGDBot"
 
 class UpdateChecker:
-    def __init__(self):
-        self.current_version = "1.0.0"  # Update this with each release
-        self.latest_version = None
-        self.check_url = "https://raw.githubusercontent.com/MalikHw/hwgdbot-db/main/ver.txt"
+    def __init__(self, current_version):
+        self.current_version = current_version
     
-    def has_update(self) -> bool:
+    def check_for_updates(self):
+        """Check for updates from GitHub"""
+        from main import log
+        
         try:
-            response = requests.get(self.check_url, timeout=5)
+            response = requests.get(VERSION_URL, timeout=10)
             
             if response.status_code == 200:
-                self.latest_version = response.text.strip()
+                latest_version = response.text.strip()
                 
-                # Simple version comparison
-                return self._compare_versions(self.current_version, self.latest_version) < 0
-            
-        except Exception as e:
-            print(f"Update check failed: {e}")
+                log("INFO", f"Current version: {self.current_version}, Latest version: {latest_version}")
+                
+                if self.is_newer_version(latest_version):
+                    self.show_update_dialog(latest_version)
+                else:
+                    log("INFO", "App is up to date")
         
-        return False
+        except Exception as e:
+            log("WARNING", f"Failed to check for updates: {e}")
     
-    def _compare_versions(self, v1: str, v2: str) -> int:
-        """Returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2"""
+    def is_newer_version(self, latest_version):
+        """Compare versions"""
         try:
-            parts1 = [int(x) for x in v1.split('.')]
-            parts2 = [int(x) for x in v2.split('.')]
+            current_parts = [int(x) for x in self.current_version.split('.')]
+            latest_parts = [int(x) for x in latest_version.split('.')]
             
-            for i in range(max(len(parts1), len(parts2))):
-                p1 = parts1[i] if i < len(parts1) else 0
-                p2 = parts2[i] if i < len(parts2) else 0
-                
-                if p1 < p2:
-                    return -1
-                elif p1 > p2:
-                    return 1
-            
-            return 0
+            return latest_parts > current_parts
         except:
-            return 0
+            return False
+    
+    def show_update_dialog(self, latest_version):
+        """Show update available dialog"""
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setWindowTitle("Update Available")
+        msg.setText(f"A new version of HwGDBot is available!")
+        msg.setInformativeText(f"Current version: {self.current_version}\nLatest version: {latest_version}\n\nWould you like to download it?")
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        
+        result = msg.exec()
+        
+        if result == QMessageBox.StandardButton.Yes:
+            webbrowser.open(DOWNLOAD_URL)
+            
+            from main import log
+            log("INFO", "User chose to download update")

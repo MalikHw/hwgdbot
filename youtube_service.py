@@ -1,61 +1,70 @@
 import re
 from PyQt6.QtCore import QThread, pyqtSignal
 
-try:
-    import pytchat
-    PYTCHAT_AVAILABLE = True
-except ImportError:
-    PYTCHAT_AVAILABLE = False
-
 class YouTubeService(QThread):
     level_requested = pyqtSignal(str, str, str)  # level_id, requester, platform
     delete_requested = pyqtSignal(str, str)  # requester, platform
-    connection_status = pyqtSignal(str)
+    connection_changed = pyqtSignal(str, bool)  # service, connected
     
-    def __init__(self, livestream_url: str, post_cmd: str = '!post', del_cmd: str = '!del'):
+    def __init__(self, settings, livestream_url):
         super().__init__()
+        self.settings = settings
         self.livestream_url = livestream_url
-        self.post_cmd = post_cmd
-        self.del_cmd = del_cmd
         self.running = False
+        self.connected = False
         self.chat = None
+        
+        self.post_command = settings.get("post_command", "!post")
+        self.delete_command = settings.get("delete_command", "!del")
     
     def run(self):
-        if not PYTCHAT_AVAILABLE:
-            self.connection_status.emit("❌ pytchat not installed")
-            return
-        
-        self.running = True
-        self.connection_status.emit("Connecting to YouTube...")
+        """Main thread loop"""
+        from main import log
         
         try:
+            import pytchat
+            
+            self.running = True
+            
             # Extract video ID from URL
             video_id = self.extract_video_id(self.livestream_url)
-            
             if not video_id:
-                self.connection_status.emit("❌ Invalid YouTube URL")
+                log("ERROR", "Invalid YouTube URL")
                 return
             
+            # Connect to YouTube chat
             self.chat = pytchat.create(video_id=video_id)
-            self.connection_status.emit(f"✅ Connected to YouTube Live")
+            self.connected = True
+            self.connection_changed.emit("youtube", True)
+            log("INFO", f"Connected to YouTube livestream {video_id}")
             
+            # Main message loop
             while self.running and self.chat.is_alive():
-                for message in self.chat.get().sync_items():
-                    if not self.running:
-                        break
-                    
-                    self.parse_message(message.author.name, message.message)
+                try:
+                    for c in self.chat.get().sync_items():
+                        if not self.running:
+                            break
+                        
+                        self.handle_message(c.author.name, c.message)
+                
+                except Exception as e:
+                    log("ERROR", f"YouTube chat error: {e}")
+                    break
         
+        except ImportError:
+            log("ERROR", "pytchat not installed")
         except Exception as e:
-            self.connection_status.emit(f"❌ YouTube error: {e}")
+            log("ERROR", f"YouTube connection error: {e}")
         
         finally:
+            self.connected = False
+            self.connection_changed.emit("youtube", False)
             if self.chat:
                 self.chat.terminate()
-            self.connection_status.emit("Disconnected from YouTube")
+            log("INFO", "Disconnected from YouTube")
     
-    def extract_video_id(self, url: str) -> str:
-        # Extract video ID from various YouTube URL formats
+    def extract_video_id(self, url):
+        """Extract video ID from YouTube URL"""
         patterns = [
             r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})',
             r'youtube\.com/live/([a-zA-Z0-9_-]{11})'
@@ -68,23 +77,38 @@ class YouTubeService(QThread):
         
         return None
     
-    def parse_message(self, username: str, message: str):
-        # Check for post command (configurable)
-        post_pattern = re.escape(self.post_cmd) + r'\s+(\d+)'
-        post_match = re.match(post_pattern, message, re.IGNORECASE)
+    def handle_message(self, username, message):
+        """Handle chat message"""
+        from main import log
         
-        if post_match:
-            level_id = post_match.group(1)
-            self.level_requested.emit(level_id, username, 'youtube')
-            return
+        message = message.strip()
         
-        # Check for delete command (configurable)
-        del_pattern = re.escape(self.del_cmd)
-        if re.match(del_pattern, message, re.IGNORECASE):
-            self.delete_requested.emit(username, 'youtube')
+        # Check for post command
+        if message.startswith(self.post_command):
+            parts = message.split()
+            if len(parts) >= 2:
+                level_id = parts[1]
+                # Extract numeric ID
+                level_id = re.sub(r'\D', '', level_id)
+                if level_id:
+                    log("INFO", f"YouTube: {username} requested level {level_id}")
+                    self.level_requested.emit(level_id, username, "youtube")
+        
+        # Check for delete command
+        elif message.startswith(self.delete_command):
+            log("INFO", f"YouTube: {username} requested delete")
+            self.delete_requested.emit(username, "youtube")
+    
+    def is_connected(self):
+        """Check if connected"""
+        return self.connected
     
     def stop(self):
+        """Stop the service"""
         self.running = False
         if self.chat:
-            self.chat.terminate()
+            try:
+                self.chat.terminate()
+            except:
+                pass
         self.wait()

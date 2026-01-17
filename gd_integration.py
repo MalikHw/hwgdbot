@@ -1,142 +1,177 @@
-import requests
+import os
 import json
-from pathlib import Path
+import requests
+from datetime import datetime, timedelta
+
+DATA_DIR = "data"
+CACHE_FILE = os.path.join(DATA_DIR, "cache.json")
+CACHE_DURATION = timedelta(hours=24)
 
 class GDIntegration:
-    def __init__(self, data_dir: Path):
-        self.data_dir = data_dir
-        self.cache_file = data_dir / "cache.json"
-        self.cache = {}
-        self.load_cache()
-        self.base_url = "https://gdbrowser.com/api"
+    def __init__(self):
+        self.api_url = "https://gdbrowser.com/api/level"
+        self.cache = self.load_cache()
     
     def load_cache(self):
-        if self.cache_file.exists():
-            try:
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
-                    self.cache = json.load(f)
-            except:
-                self.cache = {}
+        """Load cache from file"""
+        try:
+            if os.path.exists(CACHE_FILE):
+                with open(CACHE_FILE, "r", encoding="utf-8") as f:
+                    return json.load(f)
+        except Exception as e:
+            from main import log
+            log("ERROR", f"Failed to load cache: {e}")
+        return {}
     
     def save_cache(self):
-        with open(self.cache_file, 'w', encoding='utf-8') as f:
-            json.dump(self.cache, f, indent=2, ensure_ascii=False)
+        """Save cache to file"""
+        try:
+            with open(CACHE_FILE, "w", encoding="utf-8") as f:
+                json.dump(self.cache, f, indent=2)
+        except Exception as e:
+            from main import log
+            log("ERROR", f"Failed to save cache: {e}")
     
-    def fetch_level(self, level_id: str) -> dict:
-        level_id = str(level_id).strip()
+    def is_cache_valid(self, level_id):
+        """Check if cached data is still valid"""
+        if str(level_id) not in self.cache:
+            return False
+        
+        cached = self.cache[str(level_id)]
+        cached_time = datetime.fromisoformat(cached.get("cached_at", "2000-01-01"))
+        
+        return datetime.now() - cached_time < CACHE_DURATION
+    
+    def fetch_level(self, level_id):
+        """Fetch level data from GDBrowser API or cache"""
+        from main import log
         
         # Check cache first
-        if level_id in self.cache:
-            return self.cache[level_id]
+        if self.is_cache_valid(level_id):
+            log("INFO", f"Using cached data for level {level_id}")
+            return self.cache[str(level_id)]["data"]
         
+        # Fetch from API
         try:
-            response = requests.get(f"{self.base_url}/level/{level_id}", timeout=10)
+            response = requests.get(f"{self.api_url}/{level_id}", timeout=10)
             
-            if response.status_code != 200:
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if level exists (API returns -1 for non-existent levels)
+                if data == -1 or (isinstance(data, dict) and data.get("error")):
+                    log("WARNING", f"Level {level_id} not found")
+                    return None
+                
+                # Parse level data
+                level_data = self.parse_level_data(data)
+                
+                # Cache the result
+                self.cache[str(level_id)] = {
+                    "data": level_data,
+                    "cached_at": datetime.now().isoformat()
+                }
+                self.save_cache()
+                
+                log("INFO", f"Fetched level {level_id} from API")
+                return level_data
+            else:
+                log("ERROR", f"API returned status {response.status_code} for level {level_id}")
                 return None
-            
-            data = response.json()
-            
-            if isinstance(data, dict) and 'error' in data:
-                return None
-            
-            # Map difficulty
-            difficulty_map = {
-                '0': 'auto',
-                '10': 'easy',
-                '20': 'normal',
-                '30': 'hard',
-                '40': 'harder',
-                '50': 'insane',
-                'demon': 'demon'
-            }
-            
-            # Extract level info
-            level_data = {
-                'level_id': level_id,
-                'level_name': data.get('name', 'Unknown'),
-                'author': data.get('author', 'Unknown'),
-                'song': self.get_song_info(data),
-                'difficulty': self.get_difficulty(data),
-                'difficultyFace': data.get('difficultyFace', ''),
-                'length': self.get_length(data),
-                'downloads': data.get('downloads', 0),
-                'likes': data.get('likes', 0),
-                'is_rated': bool(data.get('stars', 0) > 0 or data.get('featured', False)),
-                'is_disliked': data.get('disliked', False),
-                'is_large': data.get('large', False) or data.get('objects', 0) >= 40000
-            }
-            
-            # Cache it
-            self.cache[level_id] = level_data
-            self.save_cache()
-            
-            return level_data
-            
+        
+        except requests.exceptions.Timeout:
+            log("ERROR", f"Timeout fetching level {level_id}")
+            return None
         except Exception as e:
-            print(f"Error fetching level {level_id}: {e}")
+            log("ERROR", f"Error fetching level {level_id}: {e}")
             return None
     
-    def get_song_info(self, data: dict) -> str:
-        if 'songName' in data:
-            return data['songName']
-        if 'customSong' in data:
-            return data['customSong']
-        return "Unknown"
-    
-    def get_difficulty(self, data: dict) -> str:
-        if data.get('difficulty') == 'Demon':
-            # Check demon difficulty
-            demon_diff = data.get('demonDifficulty', 0)
-            if demon_diff == 3:
-                return 'demon-easy'
-            elif demon_diff == 4:
-                return 'demon-medium'
-            elif demon_diff == 5:
-                return 'demon-insane'
-            elif demon_diff == 6:
-                return 'demon-extreme'
-            else:
-                return 'demon-hard'
-        
-        diff_face = data.get('difficultyFace', 'auto').lower()
-        
-        # Map common GDBrowser values
-        mapping = {
-            'auto': 'auto',
-            'easy': 'easy',
-            'normal': 'normal',
-            'hard': 'hard',
-            'harder': 'harder',
-            'insane': 'insane',
-            'demon': 'demon-hard',
-            'extreme demon': 'demon-extreme',
-            'insane demon': 'demon-insane',
-            'medium demon': 'demon-medium',
-            'easy demon': 'demon-easy',
-            'hard demon': 'demon-hard'
+    def parse_level_data(self, data):
+        """Parse GDBrowser API response into our format"""
+        # Difficulty mapping
+        difficulty_map = {
+            0: "auto",
+            10: "easy",
+            20: "normal",
+            30: "hard",
+            40: "harder",
+            50: "insane"
         }
         
-        return mapping.get(diff_face, 'normal')
-    
-    def get_length(self, data: dict) -> str:
-        length_val = data.get('length', 0)
+        # Get base difficulty
+        difficulty_val = data.get("difficulty", 0)
         
-        # GD length values
-        if length_val == 0:
-            return 'tiny'
-        elif length_val == 1:
-            return 'short'
-        elif length_val == 2:
-            return 'medium'
-        elif length_val == 3:
-            return 'long'
-        elif length_val == 4:
-            return 'xl'
+        # Check if demon
+        if data.get("isDemon") or data.get("demon"):
+            demon_diff = data.get("demonDifficulty", 0)
+            if demon_diff == 3:
+                difficulty = "demon-easy"
+            elif demon_diff == 4:
+                difficulty = "demon-medium"
+            elif demon_diff == 5:
+                difficulty = "demon-insane"
+            elif demon_diff == 6:
+                difficulty = "demon-extreme"
+            else:
+                difficulty = "demon-hard"
+        else:
+            difficulty = difficulty_map.get(difficulty_val, "normal")
         
-        return 'unknown'
+        # Difficulty face
+        if data.get("difficulty") == "unrated":
+            difficulty_face = "unrated"
+        elif data.get("isDemon"):
+            difficulty_face = "demon"
+        else:
+            difficulty_face = difficulty
+        
+        # Length mapping
+        length_map = {
+            0: "tiny",
+            1: "short",
+            2: "medium",
+            3: "long",
+            4: "xl"
+        }
+        length = length_map.get(data.get("length", 0), "medium")
+        
+        # Check if rated (has stars or featured)
+        is_rated = (data.get("stars", 0) > 0) or data.get("featured", False) or data.get("epic", False)
+        
+        # Check if disliked (more dislikes than likes)
+        likes = data.get("likes", 0)
+        dislikes = data.get("dislikes", 0)
+        is_disliked = dislikes > likes
+        
+        # Check if large (40k+ objects)
+        objects = data.get("objects", 0)
+        is_large = objects >= 40000
+        
+        # Get song name
+        song = "Unknown"
+        if data.get("songName"):
+            song = data.get("songName")
+        elif data.get("customSong"):
+            song = data["customSong"].get("name", "Unknown")
+        
+        return {
+            "level_id": data.get("id"),
+            "level_name": data.get("name", "Unknown"),
+            "author": data.get("author", "Unknown"),
+            "song": song,
+            "difficulty": difficulty,
+            "difficultyFace": difficulty_face,
+            "length": length,
+            "downloads": data.get("downloads", 0),
+            "likes": likes,
+            "is_rated": is_rated,
+            "is_disliked": is_disliked,
+            "is_large": is_large
+        }
     
     def clear_cache(self):
+        """Clear all cached data"""
         self.cache = {}
-        if self.cache_file.exists():
-            self.cache_file.unlink()
+        self.save_cache()
+        from main import log
+        log("INFO", "Cache cleared")

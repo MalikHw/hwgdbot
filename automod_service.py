@@ -1,150 +1,98 @@
+import os
 import json
 import requests
-from pathlib import Path
 from datetime import datetime, timedelta
-from collections import defaultdict
+
+DATA_DIR = "data"
+FUCKED_LIST_URL = "https://raw.githubusercontent.com/MalikHw/HwGDBot-db/main/fucked-out-list.json"
+FUCKED_LIST_FILE = os.path.join(DATA_DIR, "fucked-out-list.json")
 
 class AutomodService:
-    def __init__(self, data_dir: Path):
-        self.data_dir = data_dir
-        self.blacklist_requesters_file = data_dir / "blacklist_requesters.json"
-        self.blacklist_creators_file = data_dir / "blacklist_creators.json"
-        self.blacklist_ids_file = data_dir / "blacklist_ids.json"
-        self.played_file = data_dir / "played.json"
-        
-        self.blacklist_requesters = set()
-        self.blacklist_creators = set()
-        self.blacklist_ids = set()
-        self.played = set()
-        self.fucked_out_list = {'crash-trigger': [], 'nsfw': []}
-        self.user_cooldowns = defaultdict(lambda: datetime.min)
-        self.user_submissions = defaultdict(list)
-        
-        self.load_blacklists()
-        self.load_played()
-        self.fetch_fucked_out_list()
+    def __init__(self, settings):
+        self.settings = settings
+        self.user_cooldowns = {}
+        self.fucked_list = self.load_fucked_list()
     
-    def load_blacklists(self):
-        # Load requesters
-        if self.blacklist_requesters_file.exists():
-            try:
-                with open(self.blacklist_requesters_file, 'r', encoding='utf-8') as f:
-                    self.blacklist_requesters = set(json.load(f))
-            except:
-                pass
-        
-        # Load creators
-        if self.blacklist_creators_file.exists():
-            try:
-                with open(self.blacklist_creators_file, 'r', encoding='utf-8') as f:
-                    self.blacklist_creators = set(json.load(f))
-            except:
-                pass
-        
-        # Load IDs
-        if self.blacklist_ids_file.exists():
-            try:
-                with open(self.blacklist_ids_file, 'r', encoding='utf-8') as f:
-                    self.blacklist_ids = set(json.load(f))
-            except:
-                pass
+    def update_settings(self, settings):
+        """Update settings"""
+        self.settings = settings
     
-    def load_played(self):
-        if self.played_file.exists():
-            try:
-                with open(self.played_file, 'r', encoding='utf-8') as f:
-                    self.played = set(json.load(f))
-            except:
-                pass
-    
-    def fetch_fucked_out_list(self):
+    def load_fucked_list(self):
+        """Load fucked-out-list from GitHub or local cache"""
+        from main import log
+        
         try:
-            url = "https://raw.githubusercontent.com/MalikHw/hwgdbot-db/main/fucked-out-list.json"
-            response = requests.get(url, timeout=10)
-            
+            # Try to fetch from GitHub
+            response = requests.get(FUCKED_LIST_URL, timeout=10)
             if response.status_code == 200:
-                self.fucked_out_list = response.json()
+                data = response.json()
+                # Save to local cache
+                with open(FUCKED_LIST_FILE, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+                log("INFO", "Downloaded fucked-out-list from GitHub")
+                return data
         except Exception as e:
-            print(f"Failed to fetch fucked-out-list: {e}")
+            log("WARNING", f"Failed to download fucked-out-list: {e}")
+        
+        # Fall back to local cache
+        try:
+            if os.path.exists(FUCKED_LIST_FILE):
+                with open(FUCKED_LIST_FILE, "r", encoding="utf-8") as f:
+                    log("INFO", "Using cached fucked-out-list")
+                    return json.load(f)
+        except Exception as e:
+            log("ERROR", f"Failed to load cached fucked-out-list: {e}")
+        
+        return {}
     
-    def check_level(self, level_id: str, requester: str, platform: str) -> dict:
-        level_id = str(level_id)
+    def check_user_cooldown(self, requester, platform):
+        """Check if user is on cooldown"""
+        if not self.settings.get("per_user_cooldown", True):
+            return {"allowed": True}
         
-        # Check blacklisted requester
-        if requester in self.blacklist_requesters:
-            return {'allowed': False, 'reason': f'Requester {requester} is blacklisted'}
+        user_key = f"{requester}@{platform}"
         
-        # Check blacklisted ID
-        if level_id in self.blacklist_ids:
-            return {'allowed': False, 'reason': f'Level ID {level_id} is blacklisted'}
-        
-        # Check fucked-out list
-        for category, entries in self.fucked_out_list.items():
-            for entry in entries:
-                if str(entry.get('level_id')) == level_id:
-                    note = entry.get('note', 'This level is banned')
-                    return {'allowed': False, 'reason': f'[{category}] {note}'}
-        
-        # Check if already played
-        if level_id in self.played:
-            return {'allowed': False, 'reason': 'Level already played this session'}
-        
-        # Check user cooldown (60 seconds)
-        now = datetime.now()
-        if now - self.user_cooldowns[requester] < timedelta(seconds=60):
-            return {'allowed': False, 'reason': f'{requester} is on cooldown'}
-        
-        # Check same level spam (3 times = block)
-        submissions = self.user_submissions[requester]
-        submissions.append((level_id, now))
-        
-        # Clean old submissions (older than 5 minutes)
-        self.user_submissions[requester] = [(lid, t) for lid, t in submissions 
-                                            if now - t < timedelta(minutes=5)]
-        
-        # Count same level submissions
-        same_level_count = sum(1 for lid, _ in self.user_submissions[requester] if lid == level_id)
-        
-        if same_level_count >= 3:
-            return {'allowed': False, 'reason': f'{requester} spammed level {level_id} 3+ times'}
+        if user_key in self.user_cooldowns:
+            last_request = self.user_cooldowns[user_key]
+            elapsed = (datetime.now() - last_request).total_seconds()
+            
+            if elapsed < 60:
+                return {
+                    "allowed": False,
+                    "reason": f"Cooldown active ({int(60 - elapsed)}s remaining)"
+                }
         
         # Update cooldown
-        self.user_cooldowns[requester] = now
-        
-        return {'allowed': True, 'reason': None}
+        self.user_cooldowns[user_key] = datetime.now()
+        return {"allowed": True}
     
-    def add_to_blacklist(self, list_type: str, value: str):
-        value = str(value)
+    def check_fucked_list(self, level_id):
+        """Check if level is in fucked-out-list"""
+        if not self.settings.get("reject_fucked_list", True):
+            return {"is_fucked": False}
         
-        if list_type == 'requester':
-            self.blacklist_requesters.add(value)
-            with open(self.blacklist_requesters_file, 'w', encoding='utf-8') as f:
-                json.dump(list(self.blacklist_requesters), f, indent=2)
+        # Check crash-trigger category
+        crash_levels = self.fucked_list.get("crash-trigger", [])
+        for entry in crash_levels:
+            if str(entry.get("level_id")) == str(level_id):
+                return {
+                    "is_fucked": True,
+                    "category": "crash-trigger",
+                    "note": entry.get("note", "Crash trigger")
+                }
         
-        elif list_type == 'creator':
-            self.blacklist_creators.add(value)
-            with open(self.blacklist_creators_file, 'w', encoding='utf-8') as f:
-                json.dump(list(self.blacklist_creators), f, indent=2)
+        # Check nsfw category
+        nsfw_levels = self.fucked_list.get("nsfw", [])
+        for entry in nsfw_levels:
+            if str(entry.get("level_id")) == str(level_id):
+                return {
+                    "is_fucked": True,
+                    "category": "nsfw",
+                    "note": entry.get("note", "NSFW content")
+                }
         
-        elif list_type == 'id':
-            self.blacklist_ids.add(value)
-            with open(self.blacklist_ids_file, 'w', encoding='utf-8') as f:
-                json.dump(list(self.blacklist_ids), f, indent=2)
+        return {"is_fucked": False}
     
-    def remove_from_blacklist(self, list_type: str, value: str):
-        value = str(value)
-        
-        if list_type == 'requester':
-            self.blacklist_requesters.discard(value)
-            with open(self.blacklist_requesters_file, 'w', encoding='utf-8') as f:
-                json.dump(list(self.blacklist_requesters), f, indent=2)
-        
-        elif list_type == 'creator':
-            self.blacklist_creators.discard(value)
-            with open(self.blacklist_creators_file, 'w', encoding='utf-8') as f:
-                json.dump(list(self.blacklist_creators), f, indent=2)
-        
-        elif list_type == 'id':
-            self.blacklist_ids.discard(value)
-            with open(self.blacklist_ids_file, 'w', encoding='utf-8') as f:
-                json.dump(list(self.blacklist_ids), f, indent=2)
+    def reload_fucked_list(self):
+        """Reload fucked-out-list from GitHub"""
+        self.fucked_list = self.load_fucked_list()

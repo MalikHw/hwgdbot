@@ -1,212 +1,264 @@
-from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-                             QPushButton, QCheckBox, QTabWidget, QWidget, QFileDialog,
-                             QMessageBox, QSpinBox, QComboBox, QGroupBox, QTextEdit)
-from PyQt6.QtCore import Qt
-from pathlib import Path
-import json
-import webbrowser
-import zipfile
 import os
-from datetime import datetime
+import webbrowser
+from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QTabWidget, 
+                             QWidget, QLabel, QLineEdit, QPushButton, QCheckBox,
+                             QSpinBox, QComboBox, QFileDialog, QTextEdit, QGroupBox,
+                             QMessageBox)
+from PyQt6.QtCore import Qt
 
 class SettingsWindow(QDialog):
-    def __init__(self, settings: dict, data_dir: Path, parent=None):
+    def __init__(self, settings, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("HwGDBot Settings")
-        self.resize(700, 600)
-        self.settings = settings.copy()
-        self.data_dir = data_dir
-        
-        self.setup_ui()
-        self.load_values()
+        self.settings = settings
+        self.init_ui()
     
-    def setup_ui(self):
+    def init_ui(self):
+        """Initialize the settings UI"""
+        self.setWindowTitle("Settings")
+        self.setGeometry(200, 200, 700, 600)
+        self.setModal(True)
+        
         layout = QVBoxLayout()
         
-        tabs = QTabWidget()
+        # Tab widget
+        self.tabs = QTabWidget()
         
-        # Connection tab
-        tabs.addTab(self.create_connection_tab(), "Connection")
+        # Add tabs
+        self.tabs.addTab(self.create_connection_tab(), "Connection")
+        self.tabs.addTab(self.create_commands_tab(), "Commands")
+        self.tabs.addTab(self.create_automod_tab(), "Automod")
+        self.tabs.addTab(self.create_filters_tab(), "Filters")
+        self.tabs.addTab(self.create_obs_tab(), "OBS Overlay")
+        self.tabs.addTab(self.create_sounds_tab(), "Sounds")
+        self.tabs.addTab(self.create_backup_tab(), "Backup")
+        self.tabs.addTab(self.create_advanced_tab(), "Advanced")
         
-        # Commands tab
-        tabs.addTab(self.create_commands_tab(), "Commands")
+        layout.addWidget(self.tabs)
         
-        # Automod tab
-        tabs.addTab(self.create_automod_tab(), "Automod")
-        
-        # Filters tab
-        tabs.addTab(self.create_filters_tab(), "Filters")
-        
-        # OBS Overlay tab
-        tabs.addTab(self.create_obs_tab(), "OBS Overlay")
-        
-        # Sounds tab
-        tabs.addTab(self.create_sounds_tab(), "Sounds")
-        
-        # Backup tab
-        tabs.addTab(self.create_backup_tab(), "Backup")
-        
-        # Advanced tab
-        tabs.addTab(self.create_advanced_tab(), "Advanced")
-        
-        layout.addWidget(tabs)
-        
-        # Bottom buttons
-        button_layout = QHBoxLayout()
-        
-        donate_btn = QPushButton("ðŸ’ Donate")
-        donate_btn.clicked.connect(lambda: webbrowser.open("https://malikhw.github.io/donate"))
-        donate_btn.setStyleSheet("QPushButton { background-color: #ff4444; color: white; font-weight: bold; }")
-        button_layout.addWidget(donate_btn)
-        
-        button_layout.addStretch()
+        # Buttons
+        btn_layout = QHBoxLayout()
         
         save_btn = QPushButton("Save")
         save_btn.clicked.connect(self.save_settings)
-        button_layout.addWidget(save_btn)
+        btn_layout.addWidget(save_btn)
         
         cancel_btn = QPushButton("Cancel")
         cancel_btn.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_btn)
+        btn_layout.addWidget(cancel_btn)
         
-        layout.addLayout(button_layout)
+        layout.addLayout(btn_layout)
+        
         self.setLayout(layout)
     
     def create_connection_tab(self):
+        """Create connection settings tab"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        # Twitch settings
-        twitch_group = QGroupBox("Twitch Connection")
+        # Twitch section
+        twitch_group = QGroupBox("Twitch")
         twitch_layout = QVBoxLayout()
         
-        help_label = QLabel("<b>How to get your Twitch OAuth token:</b><br>"
-                           "1. Visit: <a href='https://twitchtokengenerator.com'>twitchtokengenerator.com</a><br>"
-                           "2. Click 'Generate Token'<br>"
-                           "3. Select scopes: <b>chat:read</b>, <b>chat:edit</b>, <b>channel:moderate</b><br>"
-                           "4. Authorize and copy the token<br>"
-                           "5. Paste below (nothing is sent to me, stored locally only!)")
-        help_label.setOpenExternalLinks(True)
-        help_label.setWordWrap(True)
-        help_label.setStyleSheet("QLabel { background-color: #f0f0f0; padding: 10px; border-radius: 5px; }")
-        twitch_layout.addWidget(help_label)
+        # Token help
+        token_help = QLabel("Get your token from <a href='https://twitchtokengenerator.com'>twitchtokengenerator.com</a><br>"
+                           "Required scopes: chat:read, chat:edit, channel:moderate")
+        token_help.setOpenExternalLinks(True)
+        token_help.setWordWrap(True)
+        twitch_layout.addWidget(token_help)
         
-        twitch_layout.addWidget(QLabel("Twitch OAuth Token (nothing will be sent to me):"))
+        # Token input
+        token_label = QLabel("Twitch OAuth Token:")
+        twitch_layout.addWidget(token_label)
+        
         self.twitch_token_input = QLineEdit()
+        self.twitch_token_input.setPlaceholderText("Put your Twitch token here")
+        self.twitch_token_input.setText(self.settings.get("twitch_token", ""))
         self.twitch_token_input.setEchoMode(QLineEdit.EchoMode.Password)
         twitch_layout.addWidget(self.twitch_token_input)
         
-        twitch_layout.addWidget(QLabel("Twitch Channel (your username):"))
-        self.twitch_channel_input = QLineEdit()
-        twitch_layout.addWidget(self.twitch_channel_input)
+        # Username input
+        username_label = QLabel("Twitch Username:")
+        twitch_layout.addWidget(username_label)
+        
+        self.twitch_username_input = QLineEdit()
+        self.twitch_username_input.setPlaceholderText("Your Twitch username")
+        self.twitch_username_input.setText(self.settings.get("twitch_username", ""))
+        twitch_layout.addWidget(self.twitch_username_input)
         
         twitch_group.setLayout(twitch_layout)
         layout.addWidget(twitch_group)
         
-        # YouTube settings
-        youtube_group = QGroupBox("YouTube Connection")
+        # YouTube section
+        youtube_group = QGroupBox("YouTube")
         youtube_layout = QVBoxLayout()
         
-        self.youtube_enable = QCheckBox("I'm a YouTube streamer")
-        self.youtube_enable.setToolTip("Every time you start the app, you'll be asked for your livestream URL")
-        youtube_layout.addWidget(self.youtube_enable)
+        self.youtube_enabled_cb = QCheckBox("I'm a YouTube streamer")
+        self.youtube_enabled_cb.setChecked(self.settings.get("youtube_enabled", False))
+        youtube_layout.addWidget(self.youtube_enabled_cb)
         
-        yt_note = QLabel("Note: When enabled, the app will ask for your YouTube livestream URL on every startup. "
-                        "If the URL is invalid, YouTube chat connection will be skipped.")
-        yt_note.setWordWrap(True)
-        yt_note.setStyleSheet("QLabel { color: #666; font-size: 11px; }")
-        youtube_layout.addWidget(yt_note)
+        youtube_help = QLabel("When enabled, you'll be asked for your livestream URL on app start")
+        youtube_help.setWordWrap(True)
+        youtube_layout.addWidget(youtube_help)
         
         youtube_group.setLayout(youtube_layout)
         layout.addWidget(youtube_group)
+        
+        # Streamer name
+        streamer_label = QLabel("Streamer Name (for reports):")
+        layout.addWidget(streamer_label)
+        
+        self.streamer_name_input = QLineEdit()
+        self.streamer_name_input.setPlaceholderText("Your streamer name")
+        self.streamer_name_input.setText(self.settings.get("streamer_name", ""))
+        layout.addWidget(self.streamer_name_input)
         
         layout.addStretch()
         widget.setLayout(layout)
         return widget
     
     def create_commands_tab(self):
+        """Create commands settings tab"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        layout.addWidget(QLabel("<b>Chat Commands Configuration</b>"))
-        layout.addWidget(QLabel("Customize the commands users type in chat:"))
-        
         # Post command
-        post_layout = QHBoxLayout()
-        post_layout.addWidget(QLabel("Submit Level Command:"))
-        self.post_command = QLineEdit()
-        self.post_command.setPlaceholderText("!post")
-        self.post_command.setToolTip("Command for submitting levels (e.g., !post 12345)")
-        post_layout.addWidget(self.post_command)
-        layout.addLayout(post_layout)
+        post_label = QLabel("Post Command:")
+        layout.addWidget(post_label)
+        
+        self.post_command_input = QLineEdit()
+        self.post_command_input.setText(self.settings.get("post_command", "!post"))
+        layout.addWidget(self.post_command_input)
         
         # Delete command
-        del_layout = QHBoxLayout()
-        del_layout.addWidget(QLabel("Delete Level Command:"))
-        self.del_command = QLineEdit()
-        self.del_command.setPlaceholderText("!del")
-        self.del_command.setToolTip("Command for deleting your last submitted level")
-        del_layout.addWidget(self.del_command)
-        layout.addLayout(del_layout)
+        delete_label = QLabel("Delete Command:")
+        layout.addWidget(delete_label)
         
-        note = QLabel("Note: Users can delete their most recent submission using the delete command.\n"
-                     "Example: User types '!post 123' then '!del' to remove it.")
-        note.setWordWrap(True)
-        note.setStyleSheet("QLabel { color: #666; font-size: 11px; padding: 10px; }")
-        layout.addWidget(note)
-        
-        layout.addWidget(QLabel("---"))
+        self.delete_command_input = QLineEdit()
+        self.delete_command_input.setText(self.settings.get("delete_command", "!del"))
+        layout.addWidget(self.delete_command_input)
         
         # Max IDs per user
-        max_layout = QHBoxLayout()
-        max_layout.addWidget(QLabel("Max levels per user per stream:"))
-        self.max_ids_spinner = QSpinBox()
-        self.max_ids_spinner.setRange(0, 100)
-        self.max_ids_spinner.setValue(0)
-        self.max_ids_spinner.setSpecialValueText("Unlimited")
-        self.max_ids_spinner.setToolTip("0 = unlimited, 1 = one level per user, etc.\nResets when queue is cleared or app restarts")
-        max_layout.addWidget(self.max_ids_spinner)
-        max_layout.addStretch()
-        layout.addLayout(max_layout)
+        max_ids_label = QLabel("Max IDs per user per stream (0 = unlimited):")
+        layout.addWidget(max_ids_label)
+        
+        self.max_ids_spin = QSpinBox()
+        self.max_ids_spin.setMinimum(0)
+        self.max_ids_spin.setMaximum(100)
+        self.max_ids_spin.setValue(self.settings.get("max_ids_per_user", 0))
+        layout.addWidget(self.max_ids_spin)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def create_automod_tab(self):
+        """Create automod settings tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        self.per_user_cooldown_cb = QCheckBox("Per-user cooldown (60 seconds)")
+        self.per_user_cooldown_cb.setChecked(self.settings.get("per_user_cooldown", True))
+        layout.addWidget(self.per_user_cooldown_cb)
+        
+        self.block_same_level_cb = QCheckBox("Block same level when submitted by same user")
+        self.block_same_level_cb.setChecked(self.settings.get("block_same_level_same_user", True))
+        layout.addWidget(self.block_same_level_cb)
+        
+        self.reject_fucked_cb = QCheckBox("Reject crash/NSFW levels from database")
+        self.reject_fucked_cb.setChecked(self.settings.get("reject_fucked_list", True))
+        layout.addWidget(self.reject_fucked_cb)
+        
+        self.ignore_played_cb = QCheckBox("Ignore already-played levels")
+        self.ignore_played_cb.setChecked(self.settings.get("ignore_played", True))
+        layout.addWidget(self.ignore_played_cb)
         
         layout.addStretch()
         widget.setLayout(layout)
         return widget
     
     def create_filters_tab(self):
+        """Create filters settings tab"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        layout.addWidget(QLabel("<b>Level Filters</b>"))
-        layout.addWidget(QLabel("Only accept levels matching these criteria:"))
-        
-        # Length filter
-        length_group = QGroupBox("Length")
+        # Length filters
+        length_group = QGroupBox("Length Filters")
         length_layout = QVBoxLayout()
         
-        self.filter_lengths = {}
-        for length in ['tiny', 'short', 'medium', 'long', 'xl']:
-            cb = QCheckBox(length.capitalize())
-            cb.setChecked(True)
-            self.filter_lengths[length] = cb
-            length_layout.addWidget(cb)
+        length_filters = self.settings.get("length_filters", {})
+        
+        self.length_tiny_cb = QCheckBox("Tiny")
+        self.length_tiny_cb.setChecked(length_filters.get("tiny", True))
+        length_layout.addWidget(self.length_tiny_cb)
+        
+        self.length_short_cb = QCheckBox("Short")
+        self.length_short_cb.setChecked(length_filters.get("short", True))
+        length_layout.addWidget(self.length_short_cb)
+        
+        self.length_medium_cb = QCheckBox("Medium")
+        self.length_medium_cb.setChecked(length_filters.get("medium", True))
+        length_layout.addWidget(self.length_medium_cb)
+        
+        self.length_long_cb = QCheckBox("Long")
+        self.length_long_cb.setChecked(length_filters.get("long", True))
+        length_layout.addWidget(self.length_long_cb)
+        
+        self.length_xl_cb = QCheckBox("XL")
+        self.length_xl_cb.setChecked(length_filters.get("xl", True))
+        length_layout.addWidget(self.length_xl_cb)
         
         length_group.setLayout(length_layout)
         layout.addWidget(length_group)
         
-        # Difficulty filter
-        diff_group = QGroupBox("Difficulty")
+        # Difficulty filters
+        diff_group = QGroupBox("Difficulty Filters")
         diff_layout = QVBoxLayout()
         
-        self.filter_difficulties = {}
-        difficulties = ['auto', 'easy', 'normal', 'hard', 'harder', 'insane', 
-                       'demon-easy', 'demon-medium', 'demon-hard', 'demon-insane', 'demon-extreme']
+        difficulty_filters = self.settings.get("difficulty_filters", {})
         
-        for diff in difficulties:
-            cb = QCheckBox(diff.replace('-', ' ').title())
-            cb.setChecked(True)
-            self.filter_difficulties[diff] = cb
-            diff_layout.addWidget(cb)
+        self.diff_auto_cb = QCheckBox("Auto")
+        self.diff_auto_cb.setChecked(difficulty_filters.get("auto", True))
+        diff_layout.addWidget(self.diff_auto_cb)
+        
+        self.diff_easy_cb = QCheckBox("Easy")
+        self.diff_easy_cb.setChecked(difficulty_filters.get("easy", True))
+        diff_layout.addWidget(self.diff_easy_cb)
+        
+        self.diff_normal_cb = QCheckBox("Normal")
+        self.diff_normal_cb.setChecked(difficulty_filters.get("normal", True))
+        diff_layout.addWidget(self.diff_normal_cb)
+        
+        self.diff_hard_cb = QCheckBox("Hard")
+        self.diff_hard_cb.setChecked(difficulty_filters.get("hard", True))
+        diff_layout.addWidget(self.diff_hard_cb)
+        
+        self.diff_harder_cb = QCheckBox("Harder")
+        self.diff_harder_cb.setChecked(difficulty_filters.get("harder", True))
+        diff_layout.addWidget(self.diff_harder_cb)
+        
+        self.diff_insane_cb = QCheckBox("Insane")
+        self.diff_insane_cb.setChecked(difficulty_filters.get("insane", True))
+        diff_layout.addWidget(self.diff_insane_cb)
+        
+        self.diff_demon_easy_cb = QCheckBox("Easy Demon")
+        self.diff_demon_easy_cb.setChecked(difficulty_filters.get("demon-easy", True))
+        diff_layout.addWidget(self.diff_demon_easy_cb)
+        
+        self.diff_demon_medium_cb = QCheckBox("Medium Demon")
+        self.diff_demon_medium_cb.setChecked(difficulty_filters.get("demon-medium", True))
+        diff_layout.addWidget(self.diff_demon_medium_cb)
+        
+        self.diff_demon_hard_cb = QCheckBox("Hard Demon")
+        self.diff_demon_hard_cb.setChecked(difficulty_filters.get("demon-hard", True))
+        diff_layout.addWidget(self.diff_demon_hard_cb)
+        
+        self.diff_demon_insane_cb = QCheckBox("Insane Demon")
+        self.diff_demon_insane_cb.setChecked(difficulty_filters.get("demon-insane", True))
+        diff_layout.addWidget(self.diff_demon_insane_cb)
+        
+        self.diff_demon_extreme_cb = QCheckBox("Extreme Demon")
+        self.diff_demon_extreme_cb.setChecked(difficulty_filters.get("demon-extreme", True))
+        diff_layout.addWidget(self.diff_demon_extreme_cb)
         
         diff_group.setLayout(diff_layout)
         layout.addWidget(diff_group)
@@ -215,19 +267,21 @@ class SettingsWindow(QDialog):
         other_group = QGroupBox("Other Filters")
         other_layout = QVBoxLayout()
         
-        self.filter_disliked = QCheckBox("Block disliked levels")
-        other_layout.addWidget(self.filter_disliked)
+        self.block_disliked_cb = QCheckBox("Block disliked levels")
+        self.block_disliked_cb.setChecked(self.settings.get("block_disliked", False))
+        other_layout.addWidget(self.block_disliked_cb)
         
-        rated_layout = QHBoxLayout()
-        rated_layout.addWidget(QLabel("Rated Status:"))
-        self.rated_filter = QComboBox()
-        self.rated_filter.addItems(["Any", "Rated Only", "Unrated Only"])
-        rated_layout.addWidget(self.rated_filter)
-        rated_layout.addStretch()
-        other_layout.addLayout(rated_layout)
+        rated_label = QLabel("Rated Filter:")
+        other_layout.addWidget(rated_label)
         
-        self.filter_large = QCheckBox("Block large levels (40k+ objects)")
-        other_layout.addWidget(self.filter_large)
+        self.rated_combo = QComboBox()
+        self.rated_combo.addItems(["Any", "Rated Only", "Unrated Only"])
+        self.rated_combo.setCurrentText(self.settings.get("rated_filter", "Any"))
+        other_layout.addWidget(self.rated_combo)
+        
+        self.block_large_cb = QCheckBox("Block large levels (40k+ objects)")
+        self.block_large_cb.setChecked(self.settings.get("block_large", False))
+        other_layout.addWidget(self.block_large_cb)
         
         other_group.setLayout(other_layout)
         layout.addWidget(other_group)
@@ -236,105 +290,121 @@ class SettingsWindow(QDialog):
         widget.setLayout(layout)
         return widget
     
-    def create_automod_tab(self):
-        widget = QWidget()
-        layout = QVBoxLayout()
-        
-        layout.addWidget(QLabel("Automod Features:"))
-        
-        self.automod_cooldown = QCheckBox("Enable per-user cooldown (60s)")
-        layout.addWidget(self.automod_cooldown)
-        
-        self.automod_spam = QCheckBox("Block same level 3x from same user")
-        layout.addWidget(self.automod_spam)
-        
-        self.automod_fucked = QCheckBox("Reject crash/NSFW levels from database")
-        layout.addWidget(self.automod_fucked)
-        
-        self.automod_played = QCheckBox("Ignore already played levels per session")
-        layout.addWidget(self.automod_played)
-        
-        layout.addStretch()
-        widget.setLayout(layout)
-        return widget
-    
     def create_obs_tab(self):
+        """Create OBS overlay settings tab"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        self.obs_enable = QCheckBox("Enable OBS Overlay")
-        layout.addWidget(self.obs_enable)
+        self.obs_enabled_cb = QCheckBox("Enable OBS Overlay")
+        self.obs_enabled_cb.setChecked(self.settings.get("obs_overlay_enabled", False))
+        layout.addWidget(self.obs_enabled_cb)
         
-        layout.addWidget(QLabel("Overlay Text Template:"))
-        layout.addWidget(QLabel("Variables: {level}, {author}, {id}, {next-level}, {next-author}"))
-        self.obs_template = QTextEdit()
-        self.obs_template.setMaximumHeight(100)
-        layout.addWidget(self.obs_template)
+        self.obs_window_cb = QCheckBox("Show separate overlay window")
+        self.obs_window_cb.setChecked(self.settings.get("obs_overlay_window_enabled", False))
+        layout.addWidget(self.obs_window_cb)
         
-        # Font selection
+        server_label = QLabel("HTML server always runs on port 6767 when overlay is enabled")
+        server_label.setWordWrap(True)
+        layout.addWidget(server_label)
+        
+        # Template
+        template_label = QLabel("Template (variables: {level}, {author}, {id}, {next-level}, {next-author}):")
+        layout.addWidget(template_label)
+        
+        self.obs_template_input = QTextEdit()
+        self.obs_template_input.setMaximumHeight(100)
+        self.obs_template_input.setText(self.settings.get("obs_overlay_template", "{level} by {author} (ID: {id})"))
+        layout.addWidget(self.obs_template_input)
+        
+        # Font
+        font_label = QLabel("Custom Font (.ttf):")
+        layout.addWidget(font_label)
+        
         font_layout = QHBoxLayout()
-        font_layout.addWidget(QLabel("Font File (.ttf):"))
-        self.obs_font_path = QLineEdit()
-        font_btn = QPushButton("Browse...")
+        self.obs_font_input = QLineEdit()
+        self.obs_font_input.setText(self.settings.get("obs_overlay_font", ""))
+        font_layout.addWidget(self.obs_font_input)
+        
+        font_btn = QPushButton("Browse")
         font_btn.clicked.connect(self.browse_font)
-        font_layout.addWidget(self.obs_font_path)
         font_layout.addWidget(font_btn)
+        
         layout.addLayout(font_layout)
         
         # Size
         size_layout = QHBoxLayout()
-        size_layout.addWidget(QLabel("Window Size:"))
-        self.obs_width = QSpinBox()
-        self.obs_width.setRange(200, 2000)
-        self.obs_width.setValue(600)
-        size_layout.addWidget(QLabel("Width:"))
-        size_layout.addWidget(self.obs_width)
-        self.obs_height = QSpinBox()
-        self.obs_height.setRange(100, 1000)
-        self.obs_height.setValue(100)
-        size_layout.addWidget(QLabel("Height:"))
-        size_layout.addWidget(self.obs_height)
+        
+        width_label = QLabel("Width:")
+        size_layout.addWidget(width_label)
+        
+        self.obs_width_spin = QSpinBox()
+        self.obs_width_spin.setMinimum(100)
+        self.obs_width_spin.setMaximum(3840)
+        self.obs_width_spin.setValue(self.settings.get("obs_overlay_width", 800))
+        size_layout.addWidget(self.obs_width_spin)
+        
+        height_label = QLabel("Height:")
+        size_layout.addWidget(height_label)
+        
+        self.obs_height_spin = QSpinBox()
+        self.obs_height_spin.setMinimum(50)
+        self.obs_height_spin.setMaximum(2160)
+        self.obs_height_spin.setValue(self.settings.get("obs_overlay_height", 100))
+        size_layout.addWidget(self.obs_height_spin)
+        
         layout.addLayout(size_layout)
         
         # Transparency
-        trans_layout = QHBoxLayout()
-        trans_layout.addWidget(QLabel("Background Transparency:"))
-        self.obs_transparency = QSpinBox()
-        self.obs_transparency.setRange(0, 100)
-        self.obs_transparency.setValue(0)
-        self.obs_transparency.setSuffix("%")
-        trans_layout.addWidget(self.obs_transparency)
-        layout.addLayout(trans_layout)
+        transparency_label = QLabel("Transparency (0-100%):")
+        layout.addWidget(transparency_label)
+        
+        self.obs_transparency_spin = QSpinBox()
+        self.obs_transparency_spin.setMinimum(0)
+        self.obs_transparency_spin.setMaximum(100)
+        self.obs_transparency_spin.setValue(self.settings.get("obs_overlay_transparency", 100))
+        layout.addWidget(self.obs_transparency_spin)
         
         layout.addStretch()
         widget.setLayout(layout)
         return widget
     
     def create_sounds_tab(self):
+        """Create sounds settings tab"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        self.sounds_enable = QCheckBox("Enable Sound Notifications")
-        layout.addWidget(self.sounds_enable)
+        self.sounds_enabled_cb = QCheckBox("Enable Sounds")
+        self.sounds_enabled_cb.setChecked(self.settings.get("sounds_enabled", False))
+        layout.addWidget(self.sounds_enabled_cb)
         
         # New level sound
-        new_layout = QHBoxLayout()
-        new_layout.addWidget(QLabel("New Level Added Sound:"))
-        self.sound_new_path = QLineEdit()
-        new_btn = QPushButton("Browse...")
-        new_btn.clicked.connect(lambda: self.browse_sound('new'))
-        new_layout.addWidget(self.sound_new_path)
-        new_layout.addWidget(new_btn)
-        layout.addLayout(new_layout)
+        new_level_label = QLabel("New Level Sound (.mp3/.ogg/.wav):")
+        layout.addWidget(new_level_label)
+        
+        new_level_layout = QHBoxLayout()
+        self.sound_new_level_input = QLineEdit()
+        self.sound_new_level_input.setText(self.settings.get("sound_new_level", ""))
+        new_level_layout.addWidget(self.sound_new_level_input)
+        
+        new_level_btn = QPushButton("Browse")
+        new_level_btn.clicked.connect(lambda: self.browse_sound("new_level"))
+        new_level_layout.addWidget(new_level_btn)
+        
+        layout.addLayout(new_level_layout)
         
         # Error sound
+        error_label = QLabel("Error Sound (.mp3/.ogg/.wav):")
+        layout.addWidget(error_label)
+        
         error_layout = QHBoxLayout()
-        error_layout.addWidget(QLabel("Error/Blocked Sound:"))
-        self.sound_error_path = QLineEdit()
-        error_btn = QPushButton("Browse...")
-        error_btn.clicked.connect(lambda: self.browse_sound('error'))
-        error_layout.addWidget(self.sound_error_path)
+        self.sound_error_input = QLineEdit()
+        self.sound_error_input.setText(self.settings.get("sound_error", ""))
+        error_layout.addWidget(self.sound_error_input)
+        
+        error_btn = QPushButton("Browse")
+        error_btn.clicked.connect(lambda: self.browse_sound("error"))
         error_layout.addWidget(error_btn)
+        
         layout.addLayout(error_layout)
         
         layout.addStretch()
@@ -342,30 +412,33 @@ class SettingsWindow(QDialog):
         return widget
     
     def create_backup_tab(self):
+        """Create backup settings tab"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        layout.addWidget(QLabel("Local Automatic Backup"))
-        layout.addWidget(QLabel("Backups are saved to: Documents/HwGDBot/"))
+        self.backup_enabled_cb = QCheckBox("Enable Automatic Backup")
+        self.backup_enabled_cb.setChecked(self.settings.get("backup_enabled", False))
+        layout.addWidget(self.backup_enabled_cb)
         
-        self.backup_enable = QCheckBox("Enable Automatic Backup")
-        layout.addWidget(self.backup_enable)
+        # Interval
+        interval_label = QLabel("Backup Interval (minutes):")
+        layout.addWidget(interval_label)
         
-        interval_layout = QHBoxLayout()
-        interval_layout.addWidget(QLabel("Backup Interval:"))
-        self.backup_interval = QSpinBox()
-        self.backup_interval.setRange(1, 120)
-        self.backup_interval.setValue(10)
-        self.backup_interval.setSuffix(" minutes")
-        interval_layout.addWidget(self.backup_interval)
-        interval_layout.addStretch()
-        layout.addLayout(interval_layout)
+        self.backup_interval_spin = QSpinBox()
+        self.backup_interval_spin.setMinimum(1)
+        self.backup_interval_spin.setMaximum(120)
+        self.backup_interval_spin.setValue(self.settings.get("backup_interval", 10))
+        layout.addWidget(self.backup_interval_spin)
         
-        backup_btn = QPushButton("Backup Now")
-        backup_btn.clicked.connect(self.backup_now)
-        layout.addWidget(backup_btn)
+        # Manual controls
+        manual_label = QLabel("Manual Backup:")
+        layout.addWidget(manual_label)
         
-        restore_btn = QPushButton("Restore from Backup...")
+        backup_now_btn = QPushButton("Backup Now")
+        backup_now_btn.clicked.connect(self.backup_now)
+        layout.addWidget(backup_now_btn)
+        
+        restore_btn = QPushButton("Restore from Backup")
         restore_btn.clicked.connect(self.restore_backup)
         layout.addWidget(restore_btn)
         
@@ -378,19 +451,24 @@ class SettingsWindow(QDialog):
         return widget
     
     def create_advanced_tab(self):
+        """Create advanced settings tab"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        self.save_queue = QCheckBox("Save queue on every change")
-        layout.addWidget(self.save_queue)
+        self.save_queue_cb = QCheckBox("Save queue on every change")
+        self.save_queue_cb.setChecked(self.settings.get("save_queue_on_change", True))
+        layout.addWidget(self.save_queue_cb)
         
-        self.load_queue = QCheckBox("Load queue on app start")
-        layout.addWidget(self.load_queue)
+        self.load_queue_cb = QCheckBox("Load queue on app start")
+        self.load_queue_cb.setChecked(self.settings.get("load_queue_on_start", True))
+        layout.addWidget(self.load_queue_cb)
         
-        clear_cache_btn = QPushButton("Clear Level Cache")
+        # Clear cache button
+        clear_cache_btn = QPushButton("Clear Cache")
         clear_cache_btn.clicked.connect(self.clear_cache)
         layout.addWidget(clear_cache_btn)
         
+        # Reset played button
         reset_played_btn = QPushButton("Reset Played Levels")
         reset_played_btn.clicked.connect(self.reset_played)
         layout.addWidget(reset_played_btn)
@@ -400,228 +478,134 @@ class SettingsWindow(QDialog):
         return widget
     
     def browse_font(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Select Font File", "", "Font Files (*.ttf)")
-        if path:
-            self.obs_font_path.setText(path)
+        """Browse for font file"""
+        filename, _ = QFileDialog.getOpenFileName(self, "Select Font", "", "TrueType Fonts (*.ttf)")
+        if filename:
+            self.obs_font_input.setText(filename)
     
-    def browse_sound(self, sound_type: str):
-        path, _ = QFileDialog.getOpenFileName(self, "Select Sound File", "", 
-                                              "Audio Files (*.mp3 *.ogg *.wav)")
-        if path:
-            if sound_type == 'new':
-                self.sound_new_path.setText(path)
-            else:
-                self.sound_error_path.setText(path)
-    
-    def clear_cache(self):
-        cache_file = self.data_dir / "cache.json"
-        if cache_file.exists():
-            cache_file.unlink()
-        QMessageBox.information(self, "Success", "Level cache cleared!")
-    
-    def reset_played(self):
-        played_file = self.data_dir / "played.json"
-        if played_file.exists():
-            played_file.unlink()
-        QMessageBox.information(self, "Success", "Played levels list reset!")
+    def browse_sound(self, sound_type):
+        """Browse for sound file"""
+        filename, _ = QFileDialog.getOpenFileName(self, "Select Sound", "", "Audio Files (*.mp3 *.ogg *.wav)")
+        if filename:
+            if sound_type == "new_level":
+                self.sound_new_level_input.setText(filename)
+            elif sound_type == "error":
+                self.sound_error_input.setText(filename)
     
     def backup_now(self):
-        try:
-            # Get Documents folder path based on OS
-            if os.name == 'nt':  # Windows
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            else:  # Linux/macOS
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            
-            backup_dir = docs_path / 'HwGDBot'
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Create backup filename with timestamp
-            timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-            backup_file = backup_dir / f'backup-{timestamp}.hgb-bkp'
-            
-            # Create zip file
-            with zipfile.ZipFile(backup_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                # Add all JSON files from data directory
-                for file in ['queue.json', 'played.json', 'settings.json', 
-                            'blacklist_requesters.json', 'blacklist_creators.json', 
-                            'blacklist_ids.json', 'cache.json']:
-                    file_path = self.data_dir / file
-                    if file_path.exists():
-                        zipf.write(file_path, file)
-            
-            QMessageBox.information(self, "Success", 
-                                   f"Backup saved to:\n{backup_file}")
-        
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Backup failed: {e}")
+        """Create manual backup"""
+        from backup_service import BackupService
+        backup = BackupService()
+        if backup.create_backup():
+            QMessageBox.information(self, "Success", "Backup created successfully!")
+        else:
+            QMessageBox.warning(self, "Error", "Failed to create backup")
     
     def restore_backup(self):
-        try:
-            # Get Documents folder
-            if os.name == 'nt':  # Windows
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            else:  # Linux/macOS
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            
-            backup_dir = docs_path / 'HwGDBot'
-            
-            # Open file dialog
-            file_path, _ = QFileDialog.getOpenFileName(
-                self, 
-                "Select Backup File",
-                str(backup_dir),
-                "Backup Files (*.hgb-bkp)"
-            )
-            
-            if not file_path:
-                return
-            
-            # Extract zip file
-            with zipfile.ZipFile(file_path, 'r') as zipf:
-                zipf.extractall(self.data_dir)
-            
-            QMessageBox.information(self, "Success", 
-                                   "Backup restored! Please restart the app.")
-        
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Restore failed: {e}")
+        """Restore from backup"""
+        filename, _ = QFileDialog.getOpenFileName(self, "Select Backup", "", "Backup Files (*.hgb-bkp)")
+        if filename:
+            from backup_service import BackupService
+            backup = BackupService()
+            if backup.restore_backup(filename):
+                QMessageBox.information(self, "Success", "Backup restored successfully! Please restart the app.")
+            else:
+                QMessageBox.warning(self, "Error", "Failed to restore backup")
     
     def open_backup_folder(self):
-        try:
-            if os.name == 'nt':  # Windows
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            else:  # Linux/macOS
-                docs_path = Path(os.path.expanduser('~')) / 'Documents'
-            
-            backup_dir = docs_path / 'HwGDBot'
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Open folder in file manager
-            if os.name == 'nt':  # Windows
-                os.startfile(backup_dir)
-            elif os.uname().sysname == 'Darwin':  # macOS
-                os.system(f'open "{backup_dir}"')
-            else:  # Linux
-                os.system(f'xdg-open "{backup_dir}"')
-        
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Could not open folder: {e}")
+        """Open backup folder"""
+        from backup_service import BackupService
+        backup = BackupService()
+        backup.open_backup_folder()
     
-    def load_values(self):
-        self.twitch_token_input.setText(self.settings.get('twitch_token', ''))
-        self.twitch_channel_input.setText(self.settings.get('twitch_channel', ''))
-        self.youtube_enable.setChecked(self.settings.get('enable_youtube', False))
+    def clear_cache(self):
+        """Clear GDBrowser cache"""
+        from gd_integration import GDIntegration
+        gd = GDIntegration()
+        gd.clear_cache()
+        QMessageBox.information(self, "Success", "Cache cleared!")
+    
+    def reset_played(self):
+        """Reset played levels list"""
+        confirm = QMessageBox.question(
+            self,
+            "Reset Played Levels",
+            "Are you sure you want to reset the played levels list?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
         
-        # Commands
-        self.post_command.setText(self.settings.get('post_command', '!post'))
-        self.del_command.setText(self.settings.get('del_command', '!del'))
-        self.max_ids_spinner.setValue(self.settings.get('max_ids_per_user', 0))
-        
-        # Filters
-        filters = self.settings.get('level_filters', {})
-        
-        allowed_lengths = filters.get('lengths', ['tiny', 'short', 'medium', 'long', 'xl'])
-        for length, cb in self.filter_lengths.items():
-            cb.setChecked(length in allowed_lengths)
-        
-        allowed_diffs = filters.get('difficulties', ['auto', 'easy', 'normal', 'hard', 'harder', 'insane', 
-                                                     'demon-easy', 'demon-medium', 'demon-hard', 'demon-insane', 'demon-extreme'])
-        for diff, cb in self.filter_difficulties.items():
-            cb.setChecked(diff in allowed_diffs)
-        
-        self.filter_disliked.setChecked(filters.get('filter_disliked', False))
-        self.filter_large.setChecked(filters.get('filter_large', False))
-        
-        rated_filter = filters.get('rated_filter', 'any')
-        if rated_filter == 'rated_only':
-            self.rated_filter.setCurrentIndex(1)
-        elif rated_filter == 'unrated_only':
-            self.rated_filter.setCurrentIndex(2)
-        else:
-            self.rated_filter.setCurrentIndex(0)
-        
-        # Automod
-        self.automod_cooldown.setChecked(self.settings.get('automod_cooldown', True))
-        self.automod_spam.setChecked(self.settings.get('automod_spam', True))
-        self.automod_fucked.setChecked(self.settings.get('automod_fucked', True))
-        self.automod_played.setChecked(self.settings.get('automod_played', True))
-        
-        self.obs_enable.setChecked(self.settings.get('enable_obs_overlay', False))
-        self.obs_template.setText(self.settings.get('obs_template', 'Next: {next-level} by {next-author}'))
-        self.obs_font_path.setText(self.settings.get('obs_font_path', ''))
-        self.obs_width.setValue(self.settings.get('obs_width', 600))
-        self.obs_height.setValue(self.settings.get('obs_height', 100))
-        self.obs_transparency.setValue(self.settings.get('obs_transparency', 0))
-        
-        self.sounds_enable.setChecked(self.settings.get('sounds_enable', False))
-        self.sound_new_path.setText(self.settings.get('sound_new_path', ''))
-        self.sound_error_path.setText(self.settings.get('sound_error_path', ''))
-        
-        self.backup_enable.setChecked(self.settings.get('backup_enable', False))
-        self.backup_interval.setValue(self.settings.get('backup_interval', 10))
-        
-        self.save_queue.setChecked(self.settings.get('save_queue_on_change', True))
-        self.load_queue.setChecked(self.settings.get('load_queue_on_start', True))
+        if confirm == QMessageBox.StandardButton.Yes:
+            from queue_manager import QueueManager
+            qm = QueueManager(self.settings)
+            qm.reset_played()
+            QMessageBox.information(self, "Success", "Played levels list reset!")
     
     def save_settings(self):
-        self.settings['twitch_token'] = self.twitch_token_input.text().strip()
-        self.settings['twitch_channel'] = self.twitch_channel_input.text().strip()
-        self.settings['enable_youtube'] = self.youtube_enable.isChecked()
+        """Save all settings"""
+        # Connection
+        self.settings["twitch_token"] = self.twitch_token_input.text().strip()
+        self.settings["twitch_username"] = self.twitch_username_input.text().strip()
+        self.settings["youtube_enabled"] = self.youtube_enabled_cb.isChecked()
+        self.settings["streamer_name"] = self.streamer_name_input.text().strip()
         
         # Commands
-        self.settings['post_command'] = self.post_command.text().strip() or '!post'
-        self.settings['del_command'] = self.del_command.text().strip() or '!del'
-        self.settings['max_ids_per_user'] = self.max_ids_spinner.value()
-        
-        # Filters
-        allowed_lengths = [length for length, cb in self.filter_lengths.items() if cb.isChecked()]
-        allowed_diffs = [diff for diff, cb in self.filter_difficulties.items() if cb.isChecked()]
-        
-        rated_idx = self.rated_filter.currentIndex()
-        rated_filter = 'any'
-        if rated_idx == 1:
-            rated_filter = 'rated_only'
-        elif rated_idx == 2:
-            rated_filter = 'unrated_only'
-        
-        self.settings['level_filters'] = {
-            'lengths': allowed_lengths,
-            'difficulties': allowed_diffs,
-            'filter_disliked': self.filter_disliked.isChecked(),
-            'filter_large': self.filter_large.isChecked(),
-            'rated_filter': rated_filter
-        }
+        self.settings["post_command"] = self.post_command_input.text().strip()
+        self.settings["delete_command"] = self.delete_command_input.text().strip()
+        self.settings["max_ids_per_user"] = self.max_ids_spin.value()
         
         # Automod
-        self.settings['automod_cooldown'] = self.automod_cooldown.isChecked()
-        self.settings['automod_spam'] = self.automod_spam.isChecked()
-        self.settings['automod_fucked'] = self.automod_fucked.isChecked()
-        self.settings['automod_played'] = self.automod_played.isChecked()
+        self.settings["per_user_cooldown"] = self.per_user_cooldown_cb.isChecked()
+        self.settings["block_same_level_same_user"] = self.block_same_level_cb.isChecked()
+        self.settings["reject_fucked_list"] = self.reject_fucked_cb.isChecked()
+        self.settings["ignore_played"] = self.ignore_played_cb.isChecked()
         
-        self.settings['enable_obs_overlay'] = self.obs_enable.isChecked()
-        self.settings['obs_template'] = self.obs_template.toPlainText()
-        self.settings['obs_font_path'] = self.obs_font_path.text()
-        self.settings['obs_width'] = self.obs_width.value()
-        self.settings['obs_height'] = self.obs_height.value()
-        self.settings['obs_transparency'] = self.obs_transparency.value()
+        # Filters
+        self.settings["length_filters"] = {
+            "tiny": self.length_tiny_cb.isChecked(),
+            "short": self.length_short_cb.isChecked(),
+            "medium": self.length_medium_cb.isChecked(),
+            "long": self.length_long_cb.isChecked(),
+            "xl": self.length_xl_cb.isChecked()
+        }
         
-        self.settings['sounds_enable'] = self.sounds_enable.isChecked()
-        self.settings['sound_new_path'] = self.sound_new_path.text()
-        self.settings['sound_error_path'] = self.sound_error_path.text()
+        self.settings["difficulty_filters"] = {
+            "auto": self.diff_auto_cb.isChecked(),
+            "easy": self.diff_easy_cb.isChecked(),
+            "normal": self.diff_normal_cb.isChecked(),
+            "hard": self.diff_hard_cb.isChecked(),
+            "harder": self.diff_harder_cb.isChecked(),
+            "insane": self.diff_insane_cb.isChecked(),
+            "demon-easy": self.diff_demon_easy_cb.isChecked(),
+            "demon-medium": self.diff_demon_medium_cb.isChecked(),
+            "demon-hard": self.diff_demon_hard_cb.isChecked(),
+            "demon-insane": self.diff_demon_insane_cb.isChecked(),
+            "demon-extreme": self.diff_demon_extreme_cb.isChecked()
+        }
         
-        self.settings['backup_enable'] = self.backup_enable.isChecked()
-        self.settings['backup_interval'] = self.backup_interval.value()
+        self.settings["block_disliked"] = self.block_disliked_cb.isChecked()
+        self.settings["rated_filter"] = self.rated_combo.currentText()
+        self.settings["block_large"] = self.block_large_cb.isChecked()
         
-        self.settings['save_queue_on_change'] = self.save_queue.isChecked()
-        self.settings['load_queue_on_start'] = self.load_queue.isChecked()
+        # OBS
+        self.settings["obs_overlay_enabled"] = self.obs_enabled_cb.isChecked()
+        self.settings["obs_overlay_window_enabled"] = self.obs_window_cb.isChecked()
+        self.settings["obs_overlay_template"] = self.obs_template_input.toPlainText()
+        self.settings["obs_overlay_font"] = self.obs_font_input.text().strip()
+        self.settings["obs_overlay_width"] = self.obs_width_spin.value()
+        self.settings["obs_overlay_height"] = self.obs_height_spin.value()
+        self.settings["obs_overlay_transparency"] = self.obs_transparency_spin.value()
         
-        # Save to file
-        settings_file = self.data_dir / "settings.json"
-        with open(settings_file, 'w', encoding='utf-8') as f:
-            json.dump(self.settings, f, indent=2)
+        # Sounds
+        self.settings["sounds_enabled"] = self.sounds_enabled_cb.isChecked()
+        self.settings["sound_new_level"] = self.sound_new_level_input.text().strip()
+        self.settings["sound_error"] = self.sound_error_input.text().strip()
+        
+        # Backup
+        self.settings["backup_enabled"] = self.backup_enabled_cb.isChecked()
+        self.settings["backup_interval"] = self.backup_interval_spin.value()
+        
+        # Advanced
+        self.settings["save_queue_on_change"] = self.save_queue_cb.isChecked()
+        self.settings["load_queue_on_start"] = self.load_queue_cb.isChecked()
         
         self.accept()
-    
-    def get_settings(self):
-        return self.settings

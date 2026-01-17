@@ -1,5 +1,5 @@
-PyQt6>=6.6.0
-requests>=2.31.0
-pytchat>=0.5.0
+PyQt6
+requests
+pytchat
 windows-toasts; platform_system=="Windows"
-pyinstaller>=6.0.0
+zstandard
